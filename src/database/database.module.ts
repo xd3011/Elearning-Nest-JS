@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TDBConfig } from 'src/config/dbConfig';
+import { User } from '@modules/user/entities/user.entity';
 
 @Module({
   imports: [
@@ -15,10 +16,12 @@ import { TDBConfig } from 'src/config/dbConfig';
         username: configService.get<TDBConfig>('db').user,
         password: configService.get<TDBConfig>('db').password,
         database: configService.get<TDBConfig>('db').db,
-        entities: [__dirname + '/../**/*.entity.ts'],
+        entities: [__dirname + '/../src/modules/**/entities/*.entity{.ts,.js}'],
         synchronize: true,
+        migrations: ['src/migration/**/*.ts'],
       }),
     }),
+    TypeOrmModule.forFeature([User]),
   ],
 })
 export class DatabaseModule {}

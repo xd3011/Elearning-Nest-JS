@@ -6,6 +6,8 @@ import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import dbConfig from './config/dbConfig';
 import { DatabaseModule } from './database/database.module';
+import { AuthModule } from '@modules/auth/auth.module';
+import { UserModule } from '@modules/user/user.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { DatabaseModule } from './database/database.module';
       envFilePath: ['.env', '.env.development', '.env.production'],
     }),
     DatabaseModule,
+    AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
