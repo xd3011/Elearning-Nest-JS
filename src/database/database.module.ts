@@ -17,6 +17,7 @@ import { User } from '@modules/user/entities/user.entity';
         password: configService.get<TDBConfig>('db').password,
         database: configService.get<TDBConfig>('db').db,
         entities: [__dirname + '/../src/modules/**/entities/*.entity{.ts,.js}'],
+        autoLoadEntities: true,
         synchronize: true,
         migrations: ['src/migration/**/*.ts'],
       }),
