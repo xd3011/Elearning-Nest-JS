@@ -87,49 +87,48 @@ export class UserService {
     };
   }
 
-  async findAllUser(offset?: number, limit?: number, startId?: number) {
-    const where: FindManyOptions<User>['where'] = {};
-    let separateCount = 0;
-    if (startId) {
-      where.id = MoreThanOrEqual(startId);
-      separateCount = await this.usersRepository.count();
-    }
+  async findAllUser(offset = 1, limit = 10, startId?: number) {
+    const where: FindManyOptions<User>['where'] = startId
+      ? { id: MoreThanOrEqual(startId) }
+      : {};
     const [items, count] = await this.usersRepository.findAndCount({
       where,
-      order: {
-        id: 'ASC',
-      },
+      order: { id: 'ASC' },
       skip: (offset - 1) * limit,
       take: limit,
       relations: ['createdBy'],
       select: {
         password: false,
-        createdBy: {
-          id: true,
-          email: true,
-        },
+        createdBy: { id: true, email: true },
       },
     });
 
+    const total = startId ? await this.usersRepository.count() : count;
+
     return {
       data: items,
-      total: startId ? separateCount : count,
+      total,
       page: offset,
       pageSize: limit,
     };
   }
 
   async findUserById(id: number) {
-    try {
-      const user = await this.usersRepository.findOne({
-        where: { id },
-      });
-      delete user.password;
-      return user;
-    } catch (error) {
-      console.log(error);
-      throw error;
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      select: {
+        password: false,
+      },
+    });
+    if (!user) {
+      throw new CBadRequestException(
+        'string',
+        'User not found',
+        ApiResponseCode.USER_NOT_FOUND,
+        'User not found',
+      );
     }
+    return user;
   }
 
   async updateUser(
@@ -137,22 +136,34 @@ export class UserService {
     updateUserDto: UpdateUserDto,
     createdByUserId: number,
   ) {
-    try {
-      const createdByUser = await this.usersRepository.findOneBy({
-        id: createdByUserId,
-      });
-      const userUpdate = this.usersRepository.update(
-        { id: id },
-        {
-          ...updateUserDto,
-          updatedBy: createdByUser,
-        },
+    const getUserUpdate = await this.usersRepository.findOneBy({
+      id: createdByUserId,
+    });
+    if (!getUserUpdate) {
+      throw new CBadRequestException(
+        'string',
+        'User update not found',
+        ApiResponseCode.USER_NOT_FOUND,
+        'User update not found',
       );
-      return userUpdate;
-    } catch (error) {
-      console.log(error);
-      throw error;
     }
+    const userUpdate = await this.usersRepository.update(
+      { id },
+      {
+        ...updateUserDto,
+        updatedBy: getUserUpdate,
+        updatedAt: new Date(),
+      },
+    );
+    if (userUpdate.affected === 0) {
+      throw new CBadRequestException(
+        'string',
+        'User not found or no changes made',
+        ApiResponseCode.USER_NOT_FOUND,
+        'User not found or no changes made',
+      );
+    }
+    return userUpdate;
   }
 
   async removeUser(id: number) {
@@ -163,9 +174,9 @@ export class UserService {
     if (!user) {
       throw new CBadRequestException(
         'string',
-        'User already exists',
-        ApiResponseCode.USER_ALREADY_EXISTS,
-        'User already exists',
+        'User does not exist or has been deleted',
+        ApiResponseCode.USER_NOT_FOUND,
+        'User does not exist or has been deleted',
       );
     }
     return await this.usersRepository.update(id, {
