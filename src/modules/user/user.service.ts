@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, UserCreateResult } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, MoreThanOrEqual, Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
+import { error } from 'console';
 
 @Injectable()
 export class UserService {
@@ -20,7 +21,34 @@ export class UserService {
     return bcrypt.hashSync(password, salt);
   }
 
-  async create(createUserDto: CreateUserDto, createdByUserId: number) {
+  async register(createUserDto: CreateUserDto) {
+    const isExist = await this.usersRepository.findOneBy({
+      email: createUserDto.email,
+    });
+    if (isExist) {
+      throw new CBadRequestException(
+        'string',
+        'User already exists',
+        ApiResponseCode.USER_ALREADY_EXISTS,
+        'User already exists',
+      );
+    }
+    const password = await this.hashPassword(createUserDto.password);
+    const newUser = await this.usersRepository.save({
+      ...createUserDto,
+      password,
+      role: 'user',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isDeleted: false,
+    });
+    return newUser;
+  }
+
+  async create(
+    createUserDto: CreateUserDto,
+    createdByUserId: number,
+  ): Promise<UserCreateResult> {
     const isExist = await this.usersRepository.findOneBy({
       email: createUserDto.email,
     });
@@ -44,7 +72,7 @@ export class UserService {
         'Creator user not found',
       );
     }
-    return this.usersRepository.save({
+    const newUser = await this.usersRepository.save({
       ...createUserDto,
       password,
       role: 'user',
@@ -53,9 +81,13 @@ export class UserService {
       isDeleted: false,
       createdBy: createdByUser, // Set createdBy field
     });
+    return {
+      ...newUser,
+      createdBy: { id: createdByUser.id, email: createdByUser.email },
+    };
   }
 
-  async findAll(offset?: number, limit?: number, startId?: number) {
+  async findAllUser(offset?: number, limit?: number, startId?: number) {
     const where: FindManyOptions<User>['where'] = {};
     let separateCount = 0;
     if (startId) {
@@ -71,6 +103,7 @@ export class UserService {
       take: limit,
       relations: ['createdBy'],
       select: {
+        password: false,
         createdBy: {
           id: true,
           email: true,
@@ -86,15 +119,58 @@ export class UserService {
     };
   }
 
-  findOne(id: number) {
-    return this.usersRepository.findOneBy({ id });
+  async findUserById(id: number) {
+    try {
+      const user = await this.usersRepository.findOne({
+        where: { id },
+      });
+      delete user.password;
+      return user;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return this.usersRepository.update(id, updateUserDto);
+  async updateUser(
+    id: number,
+    updateUserDto: UpdateUserDto,
+    createdByUserId: number,
+  ) {
+    try {
+      const createdByUser = await this.usersRepository.findOneBy({
+        id: createdByUserId,
+      });
+      const userUpdate = this.usersRepository.update(
+        { id: id },
+        {
+          ...updateUserDto,
+          updatedBy: createdByUser,
+        },
+      );
+      return userUpdate;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async removeUser(id: number) {
+    const user = await this.usersRepository.findOneBy({
+      id,
+      isDeleted: false,
+    });
+    if (!user) {
+      throw new CBadRequestException(
+        'string',
+        'User already exists',
+        ApiResponseCode.USER_ALREADY_EXISTS,
+        'User already exists',
+      );
+    }
+    return await this.usersRepository.update(id, {
+      isDeleted: true,
+      deletedAt: new Date(),
+    });
   }
 }

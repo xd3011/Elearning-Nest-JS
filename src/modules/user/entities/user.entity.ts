@@ -4,6 +4,9 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 enum State {
@@ -56,13 +59,13 @@ export class User {
   @Column({ type: 'enum', enum: State, default: State.OFFLINE })
   state: State;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ nullable: true })
-  updatedAt?: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-  @Column({ nullable: true })
+  @DeleteDateColumn() // Add DeleteDateColumn
   deletedAt?: Date;
 
   @Column()
