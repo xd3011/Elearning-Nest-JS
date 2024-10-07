@@ -39,8 +39,8 @@ export class UserService {
       role: 'user',
       createdAt: new Date(),
       updatedAt: new Date(),
-      isDeleted: false,
     });
+    delete newUser.password;
     return newUser;
   }
 
@@ -77,9 +77,9 @@ export class UserService {
       role: 'user',
       createdAt: new Date(),
       updatedAt: new Date(),
-      isDeleted: false,
       createdBy: createdByUser, // Set createdBy field
     });
+    delete newUser.password;
     return {
       ...newUser,
       createdBy: { id: createdByUser.id, email: createdByUser.email },
@@ -171,7 +171,6 @@ export class UserService {
   async removeUser(id: number) {
     const user = await this.usersRepository.findOneBy({
       id,
-      isDeleted: false,
     });
     if (!user) {
       throw new CBadRequestException(
@@ -182,7 +181,6 @@ export class UserService {
       );
     }
     return await this.usersRepository.update(id, {
-      isDeleted: true,
       deletedAt: new Date(),
     });
   }

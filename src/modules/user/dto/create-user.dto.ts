@@ -30,7 +30,6 @@ export class UserCreateResult {
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
-  isDeleted: boolean;
   createdBy: {
     id: number;
     email: string;

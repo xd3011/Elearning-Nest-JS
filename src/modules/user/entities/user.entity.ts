@@ -68,9 +68,6 @@ export class User {
   @DeleteDateColumn() // Add DeleteDateColumn
   deletedAt?: Date;
 
-  @Column()
-  isDeleted: boolean;
-
   // Relationships to other users responsible for actions
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'createdBy' })
