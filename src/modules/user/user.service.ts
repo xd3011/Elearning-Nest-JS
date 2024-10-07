@@ -168,7 +168,8 @@ export class UserService {
     return userUpdate;
   }
 
-  async removeUser(id: number) {
+  async removeUser(id: number, userAcion: number) {
+    const userDelete = await this.usersRepository.findOneBy({ id: userAcion });
     const user = await this.usersRepository.findOneBy({
       id,
     });
@@ -182,6 +183,7 @@ export class UserService {
     }
     return await this.usersRepository.update(id, {
       deletedAt: new Date(),
+      deletedBy: userDelete,
     });
   }
 }

@@ -41,18 +41,14 @@ const handleMessage = (
 ): void => {
   let message = 'Internal Server Error';
   let context = GlobalExceptionsFilter.name;
-  let stack = '';
 
   if (exception instanceof CHttpException) {
     message = exception.message || message;
     context = exception.context || context;
-    stack = exception.detail;
   } else if (exception instanceof HttpException) {
     message = JSON.stringify(exception.getResponse());
-    stack = exception.stack;
   } else if (exception instanceof Error) {
     message = exception.message;
-    stack = exception.stack;
   }
 
   logger.error(message);
