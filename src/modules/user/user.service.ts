@@ -7,7 +7,6 @@ import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
-import { error } from 'console';
 
 @Injectable()
 export class UserService {
@@ -27,7 +26,7 @@ export class UserService {
     });
     if (isExist) {
       throw new CBadRequestException(
-        'string',
+        UserService.name,
         'User already exists',
         ApiResponseCode.USER_ALREADY_EXISTS,
         'User already exists',
@@ -54,7 +53,7 @@ export class UserService {
     });
     if (isExist) {
       throw new CBadRequestException(
-        'string',
+        UserService.name,
         'User already exists',
         ApiResponseCode.USER_ALREADY_EXISTS,
         'User already exists',
@@ -66,7 +65,7 @@ export class UserService {
     });
     if (!createdByUser) {
       throw new CBadRequestException(
-        'string',
+        UserService.name,
         'Creator user not found',
         ApiResponseCode.USER_NOT_FOUND,
         'Creator user not found',
@@ -91,22 +90,27 @@ export class UserService {
     const where: FindManyOptions<User>['where'] = startId
       ? { id: MoreThanOrEqual(startId) }
       : {};
-    const [items, count] = await this.usersRepository.findAndCount({
+    const [users, count] = await this.usersRepository.findAndCount({
       where,
       order: { id: 'ASC' },
       skip: (offset - 1) * limit,
       take: limit,
       relations: ['createdBy'],
       select: {
-        password: false,
         createdBy: { id: true, email: true },
       },
+    });
+
+    // Remove password field from response
+    const results: User[] = users.map((user) => {
+      delete user.password;
+      return user;
     });
 
     const total = startId ? await this.usersRepository.count() : count;
 
     return {
-      data: items,
+      data: results,
       total,
       page: offset,
       pageSize: limit,
@@ -116,18 +120,16 @@ export class UserService {
   async findUserById(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
-      select: {
-        password: false,
-      },
     });
     if (!user) {
       throw new CBadRequestException(
-        'string',
+        UserService.name,
         'User not found',
         ApiResponseCode.USER_NOT_FOUND,
         'User not found',
       );
     }
+    delete user.password;
     return user;
   }
 
@@ -157,7 +159,7 @@ export class UserService {
     );
     if (userUpdate.affected === 0) {
       throw new CBadRequestException(
-        'string',
+        UserService.name,
         'User not found or no changes made',
         ApiResponseCode.USER_NOT_FOUND,
         'User not found or no changes made',
@@ -173,7 +175,7 @@ export class UserService {
     });
     if (!user) {
       throw new CBadRequestException(
-        'string',
+        UserService.name,
         'User does not exist or has been deleted',
         ApiResponseCode.USER_NOT_FOUND,
         'User does not exist or has been deleted',

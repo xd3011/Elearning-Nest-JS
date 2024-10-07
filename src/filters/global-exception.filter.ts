@@ -7,9 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces/features/arguments-host.interface';
-
 import { Response } from 'express';
-
 import { CHttpException } from '@shared/custom-http-exception';
 import { TransformResponse } from '@shared/response';
 
@@ -25,12 +23,10 @@ const handleReply = (
 
   if (exception instanceof CHttpException) {
     statusCode = exception.status;
-
     responseBody.message = exception.message;
     responseBody.code = exception.code;
   } else if (exception instanceof HttpException) {
     statusCode = exception.getStatus();
-
     responseBody.message = exception.message;
   } else if (exception instanceof Error) {
     responseBody.message = exception.message;
@@ -59,7 +55,7 @@ const handleMessage = (
     stack = exception.stack;
   }
 
-  logger.error(message, stack, context);
+  logger.error(message);
 };
 
 @Catch()
