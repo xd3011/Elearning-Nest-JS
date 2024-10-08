@@ -43,6 +43,11 @@ export class AuthController {
     // return { user };
   }
 
+  @Get('/refreshToken')
+  async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
+    return this.authService.refreshToken(req, res);
+  }
+
   @Get()
   findAll() {
     return this.authService.findAll();

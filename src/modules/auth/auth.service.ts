@@ -5,7 +5,8 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { TAuthConfig } from '@src/config/auth.config';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { CBadRequestException } from '@shared/custom-http-exception';
 
 @Injectable()
 export class AuthService {
@@ -46,7 +47,7 @@ export class AuthService {
     const payload = {
       sub: 'token login',
       iss: 'from server',
-      _id: id,
+      id: id,
       email: email,
     };
     const refreshToken = this.createRefreshToken(payload);
@@ -60,6 +61,45 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user: { id, email },
     };
+  }
+
+  async refreshToken(req: Request, res: Response) {
+    try {
+      const refreshToken = req.cookies.refreshToken;
+      if (!refreshToken) {
+        throw new CBadRequestException('Refresh token not found');
+      }
+
+      const verify = await this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<TAuthConfig>('auth').jwtRefreshKey,
+      });
+
+      const payload = {
+        sub: 'token refresh',
+        iss: 'from server',
+        id: verify.id,
+        email: verify.email,
+      };
+
+      const newRefreshToken = this.createRefreshToken(payload);
+
+      res.clearCookie('refreshToken');
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        maxAge:
+          this.configService.get<TAuthConfig>('auth').refreshTokenExpireIn,
+      });
+
+      return {
+        access_token: this.jwtService.sign(payload),
+        user: {
+          id: verify.id,
+          email: verify.email,
+        },
+      };
+    } catch (error) {
+      throw new CBadRequestException('Invalid refresh token');
+    }
   }
 
   findAll() {

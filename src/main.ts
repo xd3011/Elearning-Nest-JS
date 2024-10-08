@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { TAppConfig } from './config/app.config';
 import { VersioningType } from '@nestjs/common';
 import { GlobalExceptionsFilter } from './filters/global-exception.filter';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,6 +13,7 @@ async function bootstrap() {
   const host = configService.getOrThrow<TAppConfig>('app').host;
   const port = configService.getOrThrow<TAppConfig>('app').port;
   const apiPrefix = configService.getOrThrow<TAppConfig>('app').apiPrefix;
+  app.use(cookieParser());
   app.setGlobalPrefix(apiPrefix);
   app.useGlobalFilters(new GlobalExceptionsFilter());
   app.enableVersioning({
