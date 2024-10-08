@@ -6,6 +6,7 @@ import validateConfig from '@shared/validator-config';
 
 export type TAuthConfig = {
   jwtSecretKey: string;
+  jwtRefreshKey: string;
   accessTokenExpireIn: number;
   refreshTokenExpireIn: number;
 };
@@ -14,6 +15,10 @@ class AuthConfigValidator {
   @IsString()
   @IsNotEmpty()
   JWT_SECRET_KEY: string;
+
+  @IsString()
+  @IsNotEmpty()
+  JWT_REFRESH_KEY: string;
 
   @IsInt()
   @IsOptional()
@@ -29,6 +34,7 @@ export default registerAs<TAuthConfig>('auth', () => {
 
   return {
     jwtSecretKey: process.env.JWT_SECRET_KEY,
+    jwtRefreshKey: process.env.JWT_REFRESH_KEY,
     accessTokenExpireIn: parseInt(process.env.ACCESS_TOKEN_EXPIRE_IN) || 3600,
     refreshTokenExpireIn:
       parseInt(process.env.REFRESH_TOKEN_EXPIRE_IN) || 2592000,

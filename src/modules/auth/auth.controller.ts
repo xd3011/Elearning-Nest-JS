@@ -6,16 +6,41 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { CreateUserDto } from '@modules/user/dto/create-user.dto';
+import { IUser } from '@modules/user/interface/user.interface';
+import { User } from '@src/decorator/user.decorator';
+import { LocalAuthGuard } from './localAuth.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create() {
-    return this.authService.create();
+  @Post('/register')
+  register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto);
+  }
+
+  @UseGuards(LocalAuthGuard)
+  @Post('/login')
+  async login(@Req() req, @Res({ passthrough: true }) res: Response) {
+    console.log(req.user);
+
+    return this.authService.login(req.user, res);
+  }
+
+  @Get('/account')
+  async handleAccount(@User() user: IUser) {
+    console.log('user', user);
+
+    // const permission = (await this.roleService.findOne(user.role._id)) as any;
+    // user.permissions = permission.permissions;
+    // return { user };
   }
 
   @Get()

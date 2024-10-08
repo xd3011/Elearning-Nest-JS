@@ -20,6 +20,23 @@ export class UserService {
     return bcrypt.hashSync(password, salt);
   }
 
+  isValidPassword(password: string, hash: string) {
+    return bcrypt.compareSync(password, hash);
+  }
+
+  findOneByUsername(email: string) {
+    const user = this.usersRepository.findOneBy({ email: email });
+    if (!user) {
+      throw new CBadRequestException(
+        UserService.name,
+        'User not found',
+        ApiResponseCode.USER_NOT_FOUND,
+        'User not found',
+      );
+    }
+    return user;
+  }
+
   async register(createUserDto: CreateUserDto) {
     const isExist = await this.usersRepository.findOneBy({
       email: createUserDto.email,
@@ -41,7 +58,10 @@ export class UserService {
       updatedAt: new Date(),
     });
     delete newUser.password;
-    return newUser;
+    return {
+      id: newUser?.id,
+      createdAt: newUser?.createdAt,
+    };
   }
 
   async create(
