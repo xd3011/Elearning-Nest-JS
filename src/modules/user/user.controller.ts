@@ -7,11 +7,13 @@ import {
   Param,
   Delete,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, UserCreateResult } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationParams } from '@src/utils/types/paginationParams';
+import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
 
 @Controller('user')
 export class UserController {
@@ -25,6 +27,7 @@ export class UserController {
   }
 
   @Get()
+  @UseInterceptors(TransformResponseInterceptor)
   findAll(@Query() { offset, limit, startId }: PaginationParams) {
     return this.userService.findAllUser(offset, limit, startId);
   }

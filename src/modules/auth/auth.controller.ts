@@ -16,21 +16,22 @@ import { IUser } from '@modules/user/interface/user.interface';
 import { User } from '@src/decorator/user.decorator';
 import { LocalAuthGuard } from './localAuth.guard';
 import { Response } from 'express';
+import { IsPublic } from '@src/decorator/is-public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @IsPublic()
   @Post('/register')
   register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
   }
 
+  @IsPublic()
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   async login(@Req() req, @Res({ passthrough: true }) res: Response) {
-    console.log(req.user);
-
     return this.authService.login(req.user, res);
   }
 
@@ -43,6 +44,7 @@ export class AuthController {
     // return { user };
   }
 
+  @IsPublic()
   @Get('/refreshToken')
   async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
     return this.authService.refreshToken(req, res);

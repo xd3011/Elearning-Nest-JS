@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CLogger } from './logger/custom-loger';
 import { ConfigService } from '@nestjs/config';
@@ -6,6 +6,7 @@ import { TAppConfig } from './config/app.config';
 import { VersioningType } from '@nestjs/common';
 import { GlobalExceptionsFilter } from './filters/global-exception.filter';
 import * as cookieParser from 'cookie-parser';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,8 @@ async function bootstrap() {
   const host = configService.getOrThrow<TAppConfig>('app').host;
   const port = configService.getOrThrow<TAppConfig>('app').port;
   const apiPrefix = configService.getOrThrow<TAppConfig>('app').apiPrefix;
+  const reflector = app.get(Reflector);
+  app.useGlobalGuards(new JwtAuthGuard(reflector));
   app.use(cookieParser());
   app.setGlobalPrefix(apiPrefix);
   app.useGlobalFilters(new GlobalExceptionsFilter());

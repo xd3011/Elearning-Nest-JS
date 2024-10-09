@@ -5,9 +5,6 @@ import {
 } from '@nestjs/common';
 import { userFromContext } from '@shared/user-from-context';
 
-export const IS_PUBLIC_KEY = 'isPublic';
-export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
-
 export const RESPONSE_MESSAGE = 'response_message';
 export const ResponseMessage = (message: string) =>
   SetMetadata(RESPONSE_MESSAGE, message);
