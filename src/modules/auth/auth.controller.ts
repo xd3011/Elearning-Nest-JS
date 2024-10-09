@@ -3,12 +3,10 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   UseGuards,
   Req,
   Res,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '@modules/user/dto/create-user.dto';
@@ -17,6 +15,7 @@ import { User } from '@src/decorator/user.decorator';
 import { LocalAuthGuard } from './localAuth.guard';
 import { Response } from 'express';
 import { IsPublic } from '@src/decorator/is-public.decorator';
+import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
 
 @Controller('auth')
 export class AuthController {
@@ -36,12 +35,8 @@ export class AuthController {
   }
 
   @Get('/account')
-  async handleAccount(@User() user: IUser) {
-    console.log('user', user);
-
-    // const permission = (await this.roleService.findOne(user.role._id)) as any;
-    // user.permissions = permission.permissions;
-    // return { user };
+  async getAccount(@User() user: IUser) {
+    return await this.authService.getAccount(user);
   }
 
   @IsPublic()
@@ -50,23 +45,9 @@ export class AuthController {
     return this.authService.refreshToken(req, res);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string) {
-    return this.authService.update(+id);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+  @Post('/logout')
+  @UseInterceptors(TransformResponseInterceptor)
+  handleLogout(@Res({ passthrough: true }) res: Response, @User() user: IUser) {
+    return this.authService.logout(res, user);
   }
 }

@@ -103,19 +103,12 @@ export class AuthService {
     }
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  async getAccount(user: IUser) {
+    return await this.userService.findUserById(user.id);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  async logout(res: Response, user: IUser) {
+    res.clearCookie('refreshToken');
+    return 'Logout successfully';
   }
 }
