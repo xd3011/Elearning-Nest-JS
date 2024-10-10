@@ -16,6 +16,7 @@ import { LocalAuthGuard } from './localAuth.guard';
 import { Response } from 'express';
 import { IsPublic } from '@src/decorator/is-public.decorator';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
+import { ResponseMessage } from '@src/decorator/message.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -27,20 +28,24 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
 
+  @Post('/login')
   @IsPublic()
   @UseGuards(LocalAuthGuard)
-  @Post('/login')
+  @UseInterceptors(TransformResponseInterceptor)
   async login(@Req() req, @Res({ passthrough: true }) res: Response) {
     return this.authService.login(req.user, res);
   }
 
   @Get('/account')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Get account successfully')
   async getAccount(@User() user: IUser) {
     return await this.authService.getAccount(user);
   }
 
   @IsPublic()
   @Get('/refreshToken')
+  @UseInterceptors(TransformResponseInterceptor)
   async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
     return this.authService.refreshToken(req, res);
   }

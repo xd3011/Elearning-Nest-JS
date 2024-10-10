@@ -9,6 +9,8 @@ import { Observable, map } from 'rxjs';
 
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { TransformResponse } from '@shared/response';
+import { Reflector } from '@nestjs/core';
+import { RESPONSE_MESSAGE } from '@src/decorator/message.decorator';
 
 export interface Response<T> {
   statusCode: number;
@@ -20,6 +22,7 @@ export interface Response<T> {
 export class TransformResponseInterceptor<T>
   implements NestInterceptor<T, TransformResponse<T>>
 {
+  constructor(private reflector: Reflector) {}
   intercept(
     context: ExecutionContext,
     next: CallHandler,
@@ -30,7 +33,11 @@ export class TransformResponseInterceptor<T>
           return res;
         } else {
           return {
-            message: 'success',
+            message:
+              this.reflector.get<string>(
+                RESPONSE_MESSAGE,
+                context.getHandler(),
+              ) || 'success',
             code: ApiResponseCode.OK,
             params: null,
             data: res || null,

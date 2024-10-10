@@ -5,10 +5,6 @@ import {
 } from '@nestjs/common';
 import { userFromContext } from '@shared/user-from-context';
 
-export const RESPONSE_MESSAGE = 'response_message';
-export const ResponseMessage = (message: string) =>
-  SetMetadata(RESPONSE_MESSAGE, message);
-
 export const User = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     return userFromContext(ctx);
