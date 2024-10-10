@@ -12,7 +12,7 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from '@modules/user/dto/create-user.dto';
 import { IUser } from '@modules/user/interface/user.interface';
 import { User } from '@src/decorator/user.decorator';
-import { LocalAuthGuard } from './localAuth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Response } from 'express';
 import { IsPublic } from '@src/decorator/is-public.decorator';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
@@ -43,8 +43,8 @@ export class AuthController {
     return await this.authService.getAccount(user);
   }
 
-  @IsPublic()
   @Get('/refreshToken')
+  @IsPublic()
   @UseInterceptors(TransformResponseInterceptor)
   async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
     return this.authService.refreshToken(req, res);
