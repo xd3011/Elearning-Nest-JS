@@ -8,7 +8,7 @@ import {
   Res,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { AuthService } from './services/auth.service';
 import { CreateUserDto } from '@modules/user/dto/create-user.dto';
 import { IUser } from '@modules/user/interface/user.interface';
 import { User } from '@src/decorator/user.decorator';
@@ -24,6 +24,8 @@ export class AuthController {
 
   @IsPublic()
   @Post('/register')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Register successfully')
   register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
   }
@@ -32,6 +34,7 @@ export class AuthController {
   @IsPublic()
   @UseGuards(LocalAuthGuard)
   @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Login successfully')
   async login(@Req() req, @Res({ passthrough: true }) res: Response) {
     return this.authService.login(req.user, res);
   }
@@ -46,12 +49,14 @@ export class AuthController {
   @Get('/refreshToken')
   @IsPublic()
   @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Refresh token successfully')
   async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
     return this.authService.refreshToken(req, res);
   }
 
   @Post('/logout')
   @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Logout successfully')
   handleLogout(@Res({ passthrough: true }) res: Response, @User() user: IUser) {
     return this.authService.logout(res, user);
   }

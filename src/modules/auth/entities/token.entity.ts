@@ -11,22 +11,16 @@ export class Token {
   id: number;
 
   @Column()
-  userId: string;
+  userId: number;
 
   @Column()
-  password: string;
+  refreshToken: string[];
 
   @Column()
-  firstName: string;
+  otp: string;
 
   @Column()
-  lastName: string;
-
-  @Column({ nullable: true })
-  phoneNumber: string;
-
-  @Column({ nullable: true })
-  age?: number;
+  expiredOtp: Date;
 
   @Column()
   @CreateDateColumn()
