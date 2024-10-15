@@ -4,7 +4,7 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  OneToOne,
+  ManyToOne,
 } from 'typeorm';
 
 @Entity()
@@ -12,17 +12,17 @@ export class Token {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.id)
   userId: number;
 
   @Column('text', { array: true })
-  public paragraphs: string[];
+  refreshTokens?: string[];
 
   @Column()
-  otp: string;
+  otp?: string;
 
   @Column()
-  expiredOtp: Date;
+  expiredOtp?: Date;
 
   @CreateDateColumn()
   createdAt: Date;

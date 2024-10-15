@@ -56,7 +56,11 @@ export class User {
   @Column({ nullable: true })
   image?: string;
 
-  @Column({ type: 'enum', enum: State, default: State.OFFLINE })
+  @Column({
+    type: 'enum',
+    enum: State,
+    default: State.OFFLINE,
+  })
   state: State;
 
   @CreateDateColumn()

@@ -24,8 +24,8 @@ export class UserService {
     return bcrypt.compareSync(password, hash);
   }
 
-  findOneByUsername(email: string) {
-    const user = this.usersRepository.findOneBy({ email: email });
+  async findOneByUsername(email: string) {
+    const user = await this.usersRepository.findOneBy({ email: email });
     if (!user) {
       throw new CBadRequestException(
         UserService.name,

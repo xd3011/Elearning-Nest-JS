@@ -3,6 +3,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { IsInt, IsOptional, IsString, IsUrl } from 'class-validator';
 import validateConfig from '../shared/validator-config';
 import { config as dotenvConfig } from 'dotenv';
+import { join } from 'path';
 
 dotenvConfig({ path: '.env' });
 
@@ -49,7 +50,7 @@ const config = {
   password: dbConfig.password,
   database: dbConfig.db,
   entities: ['dist/**/*.entity{.ts,.js}'],
-  migrations: ['dist/src/migrations/*{.ts,.js}'],
+  migrations: [join(__dirname, '../', 'migrations/', '*{.ts,.js}')],
   autoLoadEntities: true,
   synchronize: false,
 };

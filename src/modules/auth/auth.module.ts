@@ -8,9 +8,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TAuthConfig } from '@src/config/auth.config';
 import { JwtStrategy } from './passport/jwt.strategy';
+import { TokenService } from './services/token.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Token } from './entities/token.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([Token]),
     UserModule,
     PassportModule,
     JwtModule.registerAsync({
@@ -25,6 +29,6 @@ import { JwtStrategy } from './passport/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, TokenService, LocalStrategy, JwtStrategy],
 })
 export class AuthModule {}

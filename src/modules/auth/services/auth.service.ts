@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { TAuthConfig } from '@src/config/auth.config';
 import { Request, Response } from 'express';
 import { CBadRequestException } from '@shared/custom-http-exception';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
     private readonly userService: UserService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private tokenService: TokenService,
   ) {}
   async register(createUserDto: CreateUserDto) {
     let newUser = await this.userService.register(createUserDto);
@@ -52,6 +54,7 @@ export class AuthService {
       email: email,
     };
     const refreshToken = this.createRefreshToken(payload);
+    await this.tokenService.saveToken(refreshToken, id);
     // await this.userService.updateUserToken(refreshToken, _id);
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
