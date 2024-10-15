@@ -1,8 +1,10 @@
+import { User } from '@modules/user/entities/user.entity';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  OneToOne,
 } from 'typeorm';
 
 @Entity()
@@ -10,11 +12,11 @@ export class Token {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @OneToOne(() => User, (user) => user.id)
   userId: number;
 
-  @Column()
-  refreshToken: string[];
+  @Column('text', { array: true })
+  public paragraphs: string[];
 
   @Column()
   otp: string;
@@ -22,7 +24,6 @@ export class Token {
   @Column()
   expiredOtp: Date;
 
-  @Column()
   @CreateDateColumn()
   createdAt: Date;
 }
