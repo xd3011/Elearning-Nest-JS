@@ -127,6 +127,15 @@ export class UserService {
       return user;
     });
 
+    if (results.length === 0) {
+      throw new CBadRequestException(
+        UserService.name,
+        'No user found',
+        ApiResponseCode.USER_NOT_FOUND,
+        'No user found',
+      );
+    }
+
     const total = startId ? await this.usersRepository.count() : count;
 
     return {

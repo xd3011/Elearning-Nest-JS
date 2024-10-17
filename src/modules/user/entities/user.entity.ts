@@ -69,10 +69,9 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn() // Add DeleteDateColumn
+  @DeleteDateColumn()
   deletedAt?: Date;
 
-  // Relationships to other users responsible for actions
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'createdBy' })
   createdBy?: User;
@@ -97,7 +96,6 @@ export class UserAction {
   @Column({ type: 'enum', enum: Action })
   action: Action;
 
-  // Relating this action to a user
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
   user: User;

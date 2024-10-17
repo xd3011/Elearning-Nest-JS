@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   ManyToOne,
+  Index,
 } from 'typeorm';
 
 @Entity()
@@ -13,15 +14,16 @@ export class Token {
   id: number;
 
   @ManyToOne(() => User, (user) => user.id)
-  userId: number;
+  user: User;
 
-  @Column('text', { array: true })
-  refreshTokens?: string[];
+  @Index()
+  @Column('text', { nullable: true })
+  refreshToken?: string;
 
-  @Column()
+  @Column({ nullable: true })
   otp?: string;
 
-  @Column()
+  @Column({ nullable: true })
   expiredOtp?: Date;
 
   @CreateDateColumn()

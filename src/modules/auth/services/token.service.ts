@@ -11,37 +11,22 @@ export class TokenService {
   ) {}
 
   async saveToken(refreshToken: string, userId: number) {
-    const token = await this.tokenRepository.findOne({
-      where: { userId },
-    });
-    if (!token) {
-      await this.tokenRepository.save({
-        refreshTokens: [refreshToken],
-        userId,
-        createdAt: new Date(),
-      });
-    } else {
-      token.refreshTokens.push(refreshToken);
-      await this.tokenRepository.save(token);
-    }
-  }
-
-  async findTokenByUserId(userId: number) {
-    return await this.tokenRepository.find({
-      where: { userId },
+    return await this.tokenRepository.save({
+      user: { id: userId },
+      refreshToken,
+      createdAt: new Date(),
     });
   }
 
-  async deleteToken(refreshToken: string, userId: number) {
+  async findToken(refreshToken: string): Promise<boolean> {
     const token = await this.tokenRepository.findOne({
-      where: { userId },
+      where: { refreshToken },
     });
-    if (token.refreshTokens.length === 1) {
-      return await this.tokenRepository.delete({ userId });
-    }
-    token.refreshTokens = token.refreshTokens.filter(
-      (token) => token !== refreshToken,
-    );
-    return await this.tokenRepository.save(token);
+
+    return !!token;
+  }
+
+  async deleteToken(refreshToken: string) {
+    return await this.tokenRepository.delete({ refreshToken });
   }
 }

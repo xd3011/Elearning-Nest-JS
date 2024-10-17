@@ -55,7 +55,6 @@ export class AuthService {
     };
     const refreshToken = this.createRefreshToken(payload);
     await this.tokenService.saveToken(refreshToken, id);
-    // await this.userService.updateUserToken(refreshToken, _id);
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       maxAge: this.configService.get<TAuthConfig>('auth').refreshTokenExpireIn,
@@ -74,9 +73,15 @@ export class AuthService {
         throw new CBadRequestException('Refresh token not found');
       }
 
+      const authConfig = this.configService.get<TAuthConfig>('auth');
       const verify = await this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<TAuthConfig>('auth').jwtRefreshKey,
+        secret: authConfig.jwtRefreshKey,
       });
+
+      const token = await this.tokenService.findToken(refreshToken);
+      if (!token) {
+        throw new CBadRequestException('Invalid refresh token');
+      }
 
       const payload = {
         sub: 'token refresh',
@@ -90,8 +95,7 @@ export class AuthService {
       res.clearCookie('refreshToken');
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
-        maxAge:
-          this.configService.get<TAuthConfig>('auth').refreshTokenExpireIn,
+        maxAge: authConfig.refreshTokenExpireIn,
       });
 
       return {
@@ -102,6 +106,9 @@ export class AuthService {
         },
       };
     } catch (error) {
+      if (error instanceof CBadRequestException) {
+        throw error;
+      }
       throw new CBadRequestException('Invalid refresh token');
     }
   }
@@ -110,8 +117,10 @@ export class AuthService {
     return await this.userService.findUserById(user.id);
   }
 
-  async logout(res: Response, user: IUser) {
+  async logout(req: Request, res: Response) {
+    const refreshToken = req.cookies.refreshToken;
+    await this.tokenService.deleteToken(refreshToken);
     res.clearCookie('refreshToken');
-    return 'Logout successfully';
+    return;
   }
 }

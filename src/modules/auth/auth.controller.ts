@@ -57,7 +57,7 @@ export class AuthController {
   @Post('/logout')
   @UseInterceptors(TransformResponseInterceptor)
   @ResponseMessage('Logout successfully')
-  handleLogout(@Res({ passthrough: true }) res: Response, @User() user: IUser) {
-    return this.authService.logout(res, user);
+  handleLogout(@Req() req, @Res({ passthrough: true }) res: Response) {
+    return this.authService.logout(req, res);
   }
 }
