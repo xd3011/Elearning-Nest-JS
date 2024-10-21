@@ -10,7 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UserCreateResult } from './dto/create-user.dto';
+import { CreateUserDto, CreateUserResult } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationParams } from '@src/utils/types/paginationParams';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
@@ -28,7 +28,7 @@ export class UserController {
   async create(
     @Body() createUserDto: CreateUserDto,
     @User() user: IUser,
-  ): Promise<UserCreateResult> {
+  ): Promise<CreateUserResult> {
     return await this.userService.create(createUserDto, user.id);
   }
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto, UserCreateResult } from './dto/create-user.dto';
+import { CreateUserDto, CreateUserResult } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, MoreThanOrEqual, Repository } from 'typeorm';
@@ -67,7 +67,7 @@ export class UserService {
   async create(
     createUserDto: CreateUserDto,
     createdByUserId: number,
-  ): Promise<UserCreateResult> {
+  ): Promise<CreateUserResult> {
     const isExist = await this.usersRepository.findOneBy({
       email: createUserDto.email,
     });

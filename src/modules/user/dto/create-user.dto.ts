@@ -15,7 +15,7 @@ export class CreateUserDto {
   phoneNumber?: string;
 }
 
-export class UserCreateResult {
+export class CreateUserResult {
   id: number;
   email: string;
   password: string;
