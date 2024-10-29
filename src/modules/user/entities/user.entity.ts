@@ -97,7 +97,7 @@ export class UserAction {
   action: Action;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user' })
   user: User;
 
   @Column()

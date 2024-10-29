@@ -139,10 +139,10 @@ export class UserService {
     const total = startId ? await this.usersRepository.count() : count;
 
     return {
-      data: results,
       total,
       page: offset,
       pageSize: limit,
+      data: results,
     };
   }
 

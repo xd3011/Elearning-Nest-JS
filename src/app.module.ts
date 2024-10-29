@@ -8,6 +8,10 @@ import dbConfig from './config/dbConfig';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { UserModule } from '@modules/user/user.module';
+import { GroupModule } from './modules/group/group.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { RoleModule } from './modules/role/role.module';
+import { PermissionModule } from './modules/permission/permission.module';
 import typeormConfig from './config/typeorm.config';
 
 @Module({
@@ -20,6 +24,10 @@ import typeormConfig from './config/typeorm.config';
     DatabaseModule,
     AuthModule,
     UserModule,
+    GroupModule,
+    ChatModule,
+    RoleModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
