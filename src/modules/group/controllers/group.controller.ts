@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { GroupService } from '../services/group.service';
 import { CreateGroupDto } from '../dto/create-group.dto';
@@ -14,6 +15,8 @@ import { UpdateGroupDto } from '../dto/update-group.dto';
 import { IUser } from '@modules/user/interface/user.interface';
 import { User } from '@src/decorator/user.decorator';
 import { PaginationParams } from '@src/utils/types/paginationParams';
+import { ResponseMessage } from '@src/decorator/message.decorator';
+import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
 
 @Controller('group')
 export class GroupController {
@@ -25,6 +28,8 @@ export class GroupController {
   }
 
   @Get()
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Get all groups successfully')
   findAll(
     @Query() { offset, limit, startId }: PaginationParams,
     @User() user: IUser,
@@ -33,17 +38,21 @@ export class GroupController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.groupService.findOne(+id);
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Get group successfully')
+  findOne(@Param('id') id: number, @User() user: IUser) {
+    return this.groupService.findOne(id, user);
   }
 
   @Patch(':id')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Update group successfully')
   update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto) {
     return this.groupService.update(+id, updateGroupDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupService.remove(+id);
+  remove(@Param('id') id: number, @User() user: IUser) {
+    return this.groupService.remove(id, user);
   }
 }

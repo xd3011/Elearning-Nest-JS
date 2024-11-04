@@ -3,7 +3,7 @@ import { CreateGroupDto } from '../dto/create-group.dto';
 import { UpdateGroupDto } from '../dto/update-group.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Group } from '../entities/group.entity';
-import { Connection, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { GroupMember, Status } from '../entities/groupMember.entity';
 import { IUser } from '@modules/user/interface/user.interface';
 import { UserService } from '@modules/user/user.service';
@@ -16,47 +16,33 @@ export class GroupService {
     @InjectRepository(Group)
     private groupRepository: Repository<Group>,
     @InjectRepository(GroupMember)
-    private groupMemberRepository: Repository<GroupMember>,
     private userService: UserService,
-    private connection: Connection,
+    private dataSource: DataSource,
   ) {}
 
-  generateLinkJoin() {
-    let linkJoin = '';
+  generateCodeJoin() {
+    let codeJoin = '';
     const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     for (let i = 0; i < 8; i++) {
-      linkJoin += chars.charAt(Math.floor(Math.random() * chars.length));
+      codeJoin += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return linkJoin;
+    return codeJoin;
   }
   async create(createGroupDto: CreateGroupDto, user: IUser) {
     const { id: userId } = user;
-    // Get user
-    const getUser = await this.userService.findUserById(userId);
-    if (!getUser) {
-      throw new CBadRequestException(
-        UserService.name,
-        'User not found',
-        ApiResponseCode.USER_NOT_FOUND,
-        'User not found',
-      );
-    }
-    // Create Group and GroupMember
     try {
-      return await this.connection.transaction(async (manager) => {
+      return await this.dataSource.transaction(async (manager) => {
         const group = await manager.save(Group, {
           ...createGroupDto,
-          linkJoin: this.generateLinkJoin(),
+          codeJoin: this.generateCodeJoin(),
         });
-
         const member = await manager.save(GroupMember, {
           group: group,
-          user: getUser,
+          user: { id: userId },
           role: 1,
           status: Status.ACTIVE,
         });
-
         return {
           group,
           member,
@@ -105,15 +91,49 @@ export class GroupService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} team`;
+  async findOne(id: number, user: IUser) {
+    const query = this.groupRepository
+      .createQueryBuilder('group')
+      .innerJoinAndSelect('group.members', 'groupMember')
+      .innerJoinAndSelect('groupMember.user', 'user')
+      .select(['group', 'groupMember'])
+      .addSelect(['user.id', 'user.email', 'user.firstName', 'user.lastName'])
+      .where('group.id = :groupId', { groupId: id });
+
+    const group = await query.getOne();
+    if (!group) {
+      throw new CBadRequestException(
+        GroupService.name,
+        'Group not found',
+        ApiResponseCode.GROUP_NOT_FOUND,
+        'Group not found',
+      );
+    }
+    return group;
   }
 
-  update(id: number, updateGroupDto: UpdateGroupDto) {
-    return `This action updates a #${id} team`;
+  async update(id: number, updateGroupDto: UpdateGroupDto) {
+    return await this.groupRepository.update(
+      { id },
+      {
+        ...updateGroupDto,
+      },
+    );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} team`;
+  async remove(id: number, user: IUser) {
+    const userDelete = await this.userService.findUserById(user.id);
+    if (!userDelete) {
+      throw new CBadRequestException(
+        UserService.name,
+        'User delete not found',
+        ApiResponseCode.USER_NOT_FOUND,
+        'User delete not found',
+      );
+    }
+    return await this.groupRepository.update(id, {
+      deletedAt: new Date(),
+      deletedBy: userDelete,
+    });
   }
 }

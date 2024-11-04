@@ -27,7 +27,7 @@ export class Group {
   description?: string;
 
   @Column()
-  linkJoin: string;
+  codeJoin: string;
 
   @OneToMany(() => GroupMember, (groupMember) => groupMember.group)
   members: GroupMember[];

@@ -44,14 +44,11 @@ export class GroupMember {
   deletedAt?: Date;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'createdBy' })
   createdBy?: User;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'updatedBy' })
   updatedBy?: User;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'deletedBy' })
   deletedBy?: User;
 }
