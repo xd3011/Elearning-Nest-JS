@@ -66,6 +66,13 @@ export class AuthService {
     };
   }
 
+  async verifyToken(token: string) {
+    const payload = await this.jwtService.verifyAsync(token, {
+      secret: this.configService.get('auth').jwtSecret,
+    });
+    return payload;
+  }
+
   async refreshToken(req: Request, res: Response) {
     try {
       const refreshToken = req.cookies.refreshToken;

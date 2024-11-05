@@ -13,6 +13,8 @@ import { ChatModule } from './modules/chat/chat.module';
 import { RoleModule } from './modules/role/role.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import typeormConfig from './config/typeorm.config';
+import { WSModule } from './ws/ws.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import typeormConfig from './config/typeorm.config';
     ChatModule,
     RoleModule,
     PermissionModule,
+    WSModule,
+    CacheModule.register({ isGlobal: true }),
   ],
   controllers: [AppController],
   providers: [AppService],

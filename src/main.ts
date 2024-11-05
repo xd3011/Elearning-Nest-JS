@@ -3,13 +3,17 @@ import { AppModule } from './app.module';
 import { CLogger } from './logger/custom-loger';
 import { ConfigService } from '@nestjs/config';
 import { TAppConfig } from './config/app.config';
-import { VersioningType } from '@nestjs/common';
+import { NestApplicationOptions, VersioningType } from '@nestjs/common';
 import { GlobalExceptionsFilter } from './filters/global-exception.filter';
 import * as cookieParser from 'cookie-parser';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const options: NestApplicationOptions = {
+    cors: true,
+    logger: CLogger,
+  };
+  const app = await NestFactory.create(AppModule, options);
   const configService = app.get(ConfigService);
   const host = configService.getOrThrow<TAppConfig>('app').host;
   const port = configService.getOrThrow<TAppConfig>('app').port;

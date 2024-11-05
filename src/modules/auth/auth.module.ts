@@ -30,5 +30,6 @@ import { Token } from './entities/token.entity';
   ],
   controllers: [AuthController],
   providers: [AuthService, TokenService, LocalStrategy, JwtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}
