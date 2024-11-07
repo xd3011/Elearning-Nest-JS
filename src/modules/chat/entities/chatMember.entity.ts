@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -14,10 +15,11 @@ export class ChatMember {
   id: number;
 
   @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: 'user' })
   user: User;
 
-  @ManyToOne(() => Chat, { nullable: true })
-  @JoinColumn({ name: 'chat' })
-  chat?: Chat;
+  @ManyToOne(() => Chat, { nullable: false })
+  chat: Chat;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

@@ -8,6 +8,7 @@ import { TAuthConfig } from '@src/config/auth.config';
 import { Request, Response } from 'express';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { TokenService } from './token.service';
+import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 
 @Injectable()
 export class AuthService {
@@ -77,7 +78,11 @@ export class AuthService {
     try {
       const refreshToken = req.cookies.refreshToken;
       if (!refreshToken) {
-        throw new CBadRequestException('Refresh token not found');
+        throw new CBadRequestException(
+          AuthService.name,
+          'Refresh token not found',
+          ApiResponseCode.REFRESH_TOKEN_NOT_FOUND,
+        );
       }
 
       const authConfig = this.configService.get<TAuthConfig>('auth');
@@ -87,7 +92,11 @@ export class AuthService {
 
       const token = await this.tokenService.findToken(refreshToken);
       if (!token) {
-        throw new CBadRequestException('Invalid refresh token');
+        throw new CBadRequestException(
+          AuthService.name,
+          'Invalid refresh token',
+          ApiResponseCode.INVALID_TOKEN,
+        );
       }
 
       const payload = {
