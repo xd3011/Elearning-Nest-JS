@@ -12,6 +12,9 @@ import {
 import { User } from '@src/decorator/user.decorator';
 import { Server, Socket } from 'socket.io';
 import { WSService } from './ws.service';
+import { CreateChatMessageDto } from '@modules/chat/dto/create-chat-message.dto';
+import { ChatMessageService } from '@modules/chat/services/chatMessage.service';
+import { ChatService } from '@modules/chat/services/chat.service';
 
 export interface CustomSocket extends Socket {
   user: IUser;
@@ -25,6 +28,8 @@ export class WsGateway {
   constructor(
     private readonly authService: AuthService,
     private readonly wsService: WSService,
+    private readonly chatService: ChatService,
+    private readonly chatMessageService: ChatMessageService,
   ) {}
 
   // @UseGuards(JwtAuthWsGuard)
@@ -55,11 +60,27 @@ export class WsGateway {
 
   @SubscribeMessage('/chat')
   @UseGuards(JwtAuthWsGuard)
-  handleMessage(
-    @MessageBody() input: string,
+  async handleMessage(
+    @MessageBody() chatMessageDto: CreateChatMessageDto,
     @ConnectedSocket() socket: Socket,
     @User() user: IUser,
-  ): void {
-    console.log(input, socket.id, user);
+  ) {
+    const chatMessage = await this.chatMessageService.create(
+      chatMessageDto,
+      user,
+    );
+    const getUserMessageId = await this.chatService.getUserMessage(
+      chatMessage.chat.id,
+      user,
+    );
+    const getClientIds = await this.wsService.getClientIds(getUserMessageId);
+    console.log(getClientIds);
+
+    // this.server.emit('newMessage', chatMessageDto);
+    if (getClientIds.clientIds.length > 0) {
+      getClientIds.clientIds.forEach((clientId) => {
+        this.server.to(clientId).emit('/chat/message', chatMessage);
+      });
+    }
   }
 }

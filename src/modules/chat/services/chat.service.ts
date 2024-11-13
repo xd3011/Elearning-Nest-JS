@@ -127,6 +127,12 @@ export class ChatService {
     return chat;
   }
 
+  async getUserMessage(id: number, user: IUser) {
+    const chat = await this.findOne(id, user);
+    // Find id user send message
+    return chat.members.find((member) => member.user.id !== user.id).user.id;
+  }
+
   update(id: number, updateChatDto: UpdateChatDto, user: IUser) {
     return `This action updates a #${id} chat`;
   }

@@ -6,6 +6,7 @@ import { Cache } from 'cache-manager';
 export class WSService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   async cacheClientId(clientId: string, userId: number) {
+    console.log(userId);
     const cacheKey = `/socketClientId/${userId}`;
     let cacheData = await this.cacheManager.get<{ clientIds: string[] }>(
       cacheKey,
@@ -22,6 +23,8 @@ export class WSService {
   }
 
   async removeClientId(clientId: string, userId: number) {
+    console.log(userId);
+
     const cacheKey = `/socketClientId/${userId}`;
     let cacheData = await this.cacheManager.get<{ clientIds: string[] }>(
       cacheKey,
@@ -32,5 +35,13 @@ export class WSService {
     cacheData.clientIds = cacheData.clientIds.filter((id) => id !== clientId);
     await this.cacheManager.set(cacheKey, cacheData);
     console.log(cacheData);
+  }
+
+  async getClientIds(userId: number) {
+    const cacheKey = `/socketClientId/${userId}`;
+    let cacheData = await this.cacheManager.get<{ clientIds: string[] }>(
+      cacheKey,
+    );
+    return cacheData;
   }
 }

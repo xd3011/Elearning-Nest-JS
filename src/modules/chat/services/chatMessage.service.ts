@@ -12,7 +12,6 @@ import { UpdateChatMessageDto } from '../dto/update-chat-message.dto';
 @Injectable()
 export class ChatMessageService {
   constructor(
-    private readonly chatService: ChatService,
     @InjectRepository(ChatMessage)
     private readonly chatMessageRepository: Repository<ChatMessage>,
   ) {}

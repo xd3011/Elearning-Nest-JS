@@ -31,7 +31,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     RoleModule,
     PermissionModule,
     WSModule,
-    CacheModule.register({ isGlobal: true }),
+    CacheModule.register({ isGlobal: true, ttl: 0 }),
   ],
   controllers: [AppController],
   providers: [AppService],
