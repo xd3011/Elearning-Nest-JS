@@ -15,6 +15,7 @@ import { PermissionModule } from './modules/permission/permission.module';
 import typeormConfig from './config/typeorm.config';
 import { WSModule } from './ws/ws.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { PostModule } from './modules/post/post.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     PermissionModule,
     WSModule,
     CacheModule.register({ isGlobal: true, ttl: 0 }),
+    PostModule,
   ],
   controllers: [AppController],
   providers: [AppService],
