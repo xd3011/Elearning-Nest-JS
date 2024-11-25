@@ -109,6 +109,17 @@ export class GroupService {
         'Group not found',
       );
     }
+
+    const isMember = group.members.some((member) => member.user.id === user.id);
+    if (!isMember) {
+      throw new CBadRequestException(
+        GroupService.name,
+        'User is not a member of the group',
+        ApiResponseCode.USER_NOT_A_MEMBER_IN_GROUP,
+        'User is not a member of the group',
+      );
+    }
+
     return group;
   }
 

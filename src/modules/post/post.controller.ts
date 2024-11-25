@@ -6,12 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { User } from '@src/decorator/user.decorator';
 import { IUser } from '@modules/user/interface/user.interface';
+import { PaginationParams } from '@src/utils/types/paginationParams';
+import { ResponseMessage } from '@src/decorator/message.decorator';
 
 @Controller('post')
 export class PostController {
@@ -23,22 +26,27 @@ export class PostController {
   }
 
   @Get()
-  findAll() {
-    return this.postService.findAll();
+  findAll(
+    @Query() { offset, limit, startId }: PaginationParams,
+    @Query('groupId') groupId: number,
+    @User() user: IUser,
+  ) {
+    return this.postService.findAll(groupId, user, offset, limit, startId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postService.findOne(+id);
+  @ResponseMessage('Get post successfully')
+  findOne(@Param('id') id: number, @User() user: IUser) {
+    return this.postService.findOne(id, user);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(+id, updatePostDto);
+  update(@Param('id') id: number, @Body() updatePostDto: UpdatePostDto) {
+    return this.postService.update(id, updatePostDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.postService.remove(id);
   }
 }

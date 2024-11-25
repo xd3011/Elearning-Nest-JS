@@ -1,11 +1,19 @@
 import { Group } from '@modules/group/entities/group.entity';
 import { User } from '@modules/user/entities/user.entity';
 import { TypeMessage } from '@shared/constants/message-type.constant';
-import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Post {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
@@ -25,4 +33,13 @@ export class Post {
     enum: TypeMessage,
   })
   type: TypeMessage;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
