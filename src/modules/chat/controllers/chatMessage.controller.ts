@@ -15,7 +15,7 @@ import { CreateChatMessageDto } from '../dto/create-chat-message.dto';
 import { PaginationParams } from '@src/utils/types/paginationParams';
 import { UpdateChatMessageDto } from '../dto/update-chat-message.dto';
 
-@Controller('chatMessage')
+@Controller('chat-message')
 export class ChatMessageController {
   constructor(private readonly chatMessageService: ChatMessageService) {}
 
@@ -27,14 +27,14 @@ export class ChatMessageController {
     return await this.chatMessageService.create(chatMessageDto, user);
   }
 
-  @Get('getAll/:chatId')
+  @Get('get-all/:id')
   async findAll(
     @Query() { offset, limit, startId }: PaginationParams,
-    @Param('chatId') chatId: number,
+    @Param('id') id: number,
     @User() user: IUser,
   ) {
     return await this.chatMessageService.findAll(
-      chatId,
+      id,
       user,
       offset,
       limit,
