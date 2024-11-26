@@ -1,6 +1,14 @@
 import { Role } from '@modules/role/entities/role.entity';
-import { Module } from '@shared/constants/module.constant';
-import { Column, ManyToMany, PrimaryGeneratedColumn, Entity } from 'typeorm';
+import { Method, Module } from '@shared/constants/module.constant';
+import {
+  Column,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+  Entity,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Permission {
@@ -10,11 +18,11 @@ export class Permission {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   description?: string;
 
-  @Column()
-  method: string;
+  @Column({ type: 'enum', enum: Method })
+  method: Method;
 
   @Column()
   path: string;
@@ -24,4 +32,13 @@ export class Permission {
 
   @ManyToMany(() => Role, (role) => role.permission)
   roles: Role[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }

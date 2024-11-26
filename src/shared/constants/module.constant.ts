@@ -1,5 +1,19 @@
 export enum Module {
-  AUTH = 'Auth',
-  USER = 'User',
+  Auth = 'Auth',
+  User = 'User',
   Group = 'Group',
+  GroupMember = 'Group Member',
+  Post = 'Post',
+  Permission = 'Permission',
+  Role = 'Role',
+  Chat = 'Chat',
+  ChatMessage = 'Chat Message',
+}
+
+export enum Method {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  DELETE = 'DELETE',
+  PATCH = 'PATCH',
 }
