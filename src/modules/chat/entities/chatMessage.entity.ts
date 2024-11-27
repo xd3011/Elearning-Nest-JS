@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Chat } from './chat.entity';
 import { User } from '@modules/user/entities/user.entity';
+import { TypeMessage } from '@shared/constants/message-type.constant';
 
 @Entity()
 export class ChatMessage {
@@ -30,6 +31,12 @@ export class ChatMessage {
   @ManyToOne(() => ChatMessage, { nullable: true })
   @JoinColumn({ name: 'replyMessage' })
   replyMessage?: ChatMessage;
+
+  @Column({
+    type: 'enum',
+    enum: TypeMessage,
+  })
+  type: TypeMessage;
 
   @CreateDateColumn()
   createdAt: Date;

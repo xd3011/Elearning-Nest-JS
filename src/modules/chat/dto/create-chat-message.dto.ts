@@ -1,4 +1,5 @@
-import { IsNumber, IsString } from 'class-validator';
+import { TypeMessage } from '@shared/constants/message-type.constant';
+import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateChatMessageDto {
   @IsString()
@@ -9,4 +10,8 @@ export class CreateChatMessageDto {
 
   @IsNumber()
   replyMessage?: number;
+
+  @IsEnum(TypeMessage)
+  @IsNotEmpty()
+  type: TypeMessage;
 }

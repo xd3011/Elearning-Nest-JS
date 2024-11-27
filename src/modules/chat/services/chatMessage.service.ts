@@ -37,6 +37,7 @@ export class ChatMessageService {
       chat: { id: chatMessageDto.chatId },
       message: chatMessageDto.message,
       replyMessage: chatMessageDto.replyMessage ? chatMessage : null,
+      type: chatMessageDto.type,
     });
   }
 
@@ -55,7 +56,12 @@ export class ChatMessageService {
       .leftJoinAndSelect('chatMessage.replyMessage', 'replyMessage')
       .innerJoinAndSelect('chatMessage.chat', 'chat')
       .innerJoinAndSelect('chatMessage.user', 'user')
-      .select(['chatMessage', 'replyMessage.id', 'replyMessage.message'])
+      .select([
+        'chatMessage',
+        'replyMessage.id',
+        'replyMessage.message',
+        'replyMessage.type',
+      ])
       .addSelect(['user.id', 'user.email', 'user.firstName', 'user.lastName'])
       .where('chatMessage.chat = :chatId', { chatId })
       .orderBy('chatMessage.createdAt', 'DESC')
@@ -81,7 +87,12 @@ export class ChatMessageService {
       .innerJoinAndSelect('chatMessage.replyMessage', 'replyMessage')
       .innerJoinAndSelect('chatMessage.chat', 'chat')
       .innerJoinAndSelect('chatMessage.user', 'user')
-      .select(['chatMessage', 'replyMessage.id', 'replyMessage.message'])
+      .select([
+        'chatMessage',
+        'replyMessage.id',
+        'replyMessage.message',
+        'replyMessage.type',
+      ])
       .addSelect(['user.id', 'user.email', 'user.firstName', 'user.lastName'])
       .where('chatMessage.id = :id', { id });
     const chatMessage = await query.getOne();
