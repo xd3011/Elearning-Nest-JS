@@ -19,7 +19,7 @@ import { ChatService } from '@modules/chat/services/chat.service';
 export interface CustomSocket extends Socket {
   user: IUser;
 }
-@WebSocketGateway()
+@WebSocketGateway({ cors: true })
 @Injectable()
 export class WsGateway {
   @WebSocketServer()
