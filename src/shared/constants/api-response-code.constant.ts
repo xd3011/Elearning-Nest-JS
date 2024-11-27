@@ -31,4 +31,7 @@ export const ApiResponseCode = {
 
   PERMISSION_EXISTED: 6000,
   PERMISSION_NOT_FOUND: 6001,
+
+  ROLE_EXISTED: 7000,
+  ROLE_NOT_FOUND: 7001,
 };

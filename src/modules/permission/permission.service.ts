@@ -4,7 +4,7 @@ import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { IUser } from '@modules/user/interface/user.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Permission } from './entities/permission.entity';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 
@@ -57,6 +57,23 @@ export class PermissionService {
       );
     }
     return permission;
+  }
+
+  async findManyByIds(ids: number[]) {
+    const [permissions, count] = await this.permissionRepository.findAndCount({
+      where: {
+        id: In(ids),
+      },
+    });
+
+    if (count !== ids.length) {
+      throw new CBadRequestException(
+        PermissionService.name,
+        'Permission not found',
+        ApiResponseCode.PERMISSION_NOT_FOUND,
+      );
+    }
+    return permissions;
   }
 
   async update(id: number, updatePermissionDto: UpdatePermissionDto) {

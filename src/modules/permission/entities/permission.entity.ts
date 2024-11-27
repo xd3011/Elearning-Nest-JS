@@ -1,8 +1,6 @@
-import { Role } from '@modules/role/entities/role.entity';
 import { Method, Module } from '@shared/constants/module.constant';
 import {
   Column,
-  ManyToMany,
   PrimaryGeneratedColumn,
   Entity,
   CreateDateColumn,
@@ -29,9 +27,6 @@ export class Permission {
 
   @Column({ type: 'enum', enum: Module })
   module: Module;
-
-  @ManyToMany(() => Role, (role) => role.permission)
-  roles: Role[];
 
   @CreateDateColumn()
   createdAt: Date;
