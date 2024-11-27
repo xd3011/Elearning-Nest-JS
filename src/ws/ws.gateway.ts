@@ -21,6 +21,7 @@ export interface CustomSocket extends Socket {
 }
 @WebSocketGateway({ cors: true })
 @Injectable()
+@UseGuards(JwtAuthWsGuard)
 export class WsGateway {
   @WebSocketServer()
   server: Server;
@@ -32,34 +33,27 @@ export class WsGateway {
     private readonly chatMessageService: ChatMessageService,
   ) {}
 
-  // @UseGuards(JwtAuthWsGuard)
-  // handleConnection(client: Socket, @User() user: IUser) {
-  //   console.log(`Client connected: ${client.id}, User: ${user}`);
-  // }
-
-  // @UseGuards(JwtAuthWsGuard)
-  // handleDisconnect(client: Socket, @User() user: IUser) {
-  //   console.log(`Client disconnected: ${client.id}, User: ${user}`);
-  // }
-
-  @UseGuards(JwtAuthWsGuard)
-  async handleConnection(client: Socket) {
+  async handleConnection(client: Socket, @User() user: IUser) {
     const authToken: any = client.handshake?.headers.access_token;
+    if (!authToken) {
+      this.server.to(client.id).emit('error', 'Unauthorized');
+    }
     const payload = await this.authService.verifyToken(authToken);
     const { id }: IUser = payload;
     await this.wsService.cacheClientId(client.id, id);
   }
 
-  @UseGuards(JwtAuthWsGuard)
   async handleDisconnect(client: Socket, @User() user: IUser) {
     const authToken: any = client.handshake?.headers.access_token;
+    if (!authToken) {
+      this.server.to(client.id).emit('error', 'Unauthorized');
+    }
     const payload = await this.authService.verifyToken(authToken);
     const { id }: IUser = payload;
     await this.wsService.removeClientId(client.id, id);
   }
 
   @SubscribeMessage('/chat')
-  @UseGuards(JwtAuthWsGuard)
   async handleMessage(
     @MessageBody() chatMessageDto: CreateChatMessageDto,
     @ConnectedSocket() socket: Socket,
