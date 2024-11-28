@@ -14,6 +14,7 @@ export class ChatMessageService {
   constructor(
     @InjectRepository(ChatMessage)
     private readonly chatMessageRepository: Repository<ChatMessage>,
+    private readonly chatService: ChatService,
   ) {}
   async create(chatMessageDto: CreateChatMessageDto, user: IUser) {
     let chatMessage: ChatMessage | null;
@@ -48,6 +49,7 @@ export class ChatMessageService {
     limit = 20,
     startId?: number,
   ) {
+    await this.chatService.findOne(chatId, user);
     const skip = (offset - 1) * limit;
     const take = limit;
 
