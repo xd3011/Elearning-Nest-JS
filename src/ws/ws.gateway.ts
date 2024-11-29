@@ -36,7 +36,7 @@ export class WsGateway {
   async handleConnection(client: Socket, @User() user: IUser) {
     const authToken: any = client.handshake?.headers.access_token;
     if (!authToken) {
-      this.server.to(client.id).emit('error', 'Unauthorized');
+      return this.server.to(client.id).emit('error', 'Unauthorized');
     }
     const payload = await this.authService.verifyToken(authToken);
     const { id }: IUser = payload;
@@ -46,7 +46,7 @@ export class WsGateway {
   async handleDisconnect(client: Socket, @User() user: IUser) {
     const authToken: any = client.handshake?.headers.access_token;
     if (!authToken) {
-      this.server.to(client.id).emit('error', 'Unauthorized');
+      return this.server.to(client.id).emit('error', 'Unauthorized');
     }
     const payload = await this.authService.verifyToken(authToken);
     const { id }: IUser = payload;
