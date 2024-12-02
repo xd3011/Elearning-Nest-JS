@@ -9,5 +9,6 @@ import { GroupModule } from '@modules/group/group.module';
   imports: [TypeOrmModule.forFeature([Post]), GroupModule],
   controllers: [PostController],
   providers: [PostService],
+  exports: [PostService],
 })
 export class PostModule {}

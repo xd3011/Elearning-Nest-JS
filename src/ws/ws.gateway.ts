@@ -15,6 +15,8 @@ import { WSService } from './ws.service';
 import { CreateChatMessageDto } from '@modules/chat/dto/create-chat-message.dto';
 import { ChatMessageService } from '@modules/chat/services/chatMessage.service';
 import { ChatService } from '@modules/chat/services/chat.service';
+import { CreatePostDto } from '@modules/post/dto/create-post.dto';
+import { PostService } from '@modules/post/post.service';
 
 export interface CustomSocket extends Socket {
   user: IUser;
@@ -31,9 +33,10 @@ export class WsGateway {
     private readonly wsService: WSService,
     private readonly chatService: ChatService,
     private readonly chatMessageService: ChatMessageService,
+    private readonly postService: PostService,
   ) {}
 
-  async handleConnection(client: Socket, @User() user: IUser) {
+  async handleConnection(client: Socket) {
     const authToken: any = client.handshake?.headers.access_token;
     if (!authToken) {
       return this.server.to(client.id).emit('error', 'Unauthorized');
@@ -43,7 +46,7 @@ export class WsGateway {
     await this.wsService.cacheClientId(client.id, id);
   }
 
-  async handleDisconnect(client: Socket, @User() user: IUser) {
+  async handleDisconnect(client: Socket) {
     const authToken: any = client.handshake?.headers.access_token;
     if (!authToken) {
       return this.server.to(client.id).emit('error', 'Unauthorized');
@@ -56,7 +59,6 @@ export class WsGateway {
   @SubscribeMessage('/chat')
   async handleMessage(
     @MessageBody() chatMessageDto: CreateChatMessageDto,
-    @ConnectedSocket() socket: Socket,
     @User() user: IUser,
   ) {
     const chatMessage = await this.chatMessageService.create(
@@ -68,13 +70,27 @@ export class WsGateway {
       user,
     );
     const getClientIds = await this.wsService.getClientIds(getUserMessageId);
-    console.log(getClientIds);
-
-    // this.server.emit('newMessage', chatMessageDto);
     if (getClientIds.clientIds.length > 0) {
       getClientIds.clientIds.forEach((clientId) => {
         this.server.to(clientId).emit('/chat/message', chatMessage);
       });
     }
+  }
+
+  @SubscribeMessage('/group/join-group')
+  async handleJoinGroupMessage(
+    @MessageBody('groupId') groupId: number,
+    @ConnectedSocket() socket: Socket,
+  ) {
+    this.server.in(socket.id).socketsJoin(`/group/${groupId}`);
+  }
+
+  @SubscribeMessage('/post')
+  async handlePostMessage(
+    @MessageBody() postDto: CreatePostDto,
+    @User() user: IUser,
+  ) {
+    const post = await this.postService.create(postDto, user);
+    this.server.to(`/group/${postDto.groupId}`).emit(`/group/post`, post);
   }
 }

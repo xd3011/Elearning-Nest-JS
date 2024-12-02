@@ -20,11 +20,11 @@ export class PostService {
   ) {}
   async create(createPostDto: CreatePostDto, user: IUser) {
     // Check group exists and user is member
-    await this.groupService.findOne(createPostDto.group, user);
+    await this.groupService.findOne(createPostDto.groupId, user);
     return await this.postRepository.save({
       ...createPostDto,
       user: { id: user.id },
-      group: { id: createPostDto.group },
+      group: { id: createPostDto.groupId },
     });
   }
 
@@ -110,7 +110,7 @@ export class PostService {
       { id },
       {
         ...updatePostDto,
-        group: { id: updatePostDto.group },
+        group: { id: updatePostDto.groupId },
       },
     );
   }

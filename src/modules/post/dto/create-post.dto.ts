@@ -12,7 +12,7 @@ export class CreatePostDto {
 
   @IsNumber()
   @IsNotEmpty()
-  group: number;
+  groupId: number;
 
   @IsEnum(TypeMessage)
   @IsNotEmpty()
