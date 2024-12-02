@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ChatMessageService } from '../services/chatMessage.service';
 import { IUser } from '@modules/user/interface/user.interface';
@@ -14,12 +15,16 @@ import { User } from '@src/decorator/user.decorator';
 import { CreateChatMessageDto } from '../dto/create-chat-message.dto';
 import { PaginationParams } from '@src/utils/types/paginationParams';
 import { UpdateChatMessageDto } from '../dto/update-chat-message.dto';
+import { ResponseMessage } from '@src/decorator/message.decorator';
+import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
 
 @Controller('chat-message')
 export class ChatMessageController {
   constructor(private readonly chatMessageService: ChatMessageService) {}
 
   @Post('')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Create chat message successfully')
   async createMessage(
     @Body() chatMessageDto: CreateChatMessageDto,
     @User() user: IUser,
@@ -28,6 +33,8 @@ export class ChatMessageController {
   }
 
   @Get('get-all/:id')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Get all chat messages successfully')
   async findAll(
     @Query() { offset, limit, startId }: PaginationParams,
     @Param('id') id: number,
@@ -43,11 +50,15 @@ export class ChatMessageController {
   }
 
   @Get('/:id')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Get chat message successfully')
   async getMessageById(@Param('id') id: number, @User() user: IUser) {
     return await this.chatMessageService.findOne(id, user);
   }
 
   @Patch('/:id')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Update chat message successfully')
   async updateMessage(
     @Param('id') id: number,
     @Body() updateChatMessageDto: UpdateChatMessageDto,
@@ -60,6 +71,8 @@ export class ChatMessageController {
     );
   }
   @Delete('/:id')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Delete chat message successfully')
   async deleteMessage(@Param('id') id: number, @User() user: IUser) {
     return await this.chatMessageService.deleteMessage(id, user);
   }

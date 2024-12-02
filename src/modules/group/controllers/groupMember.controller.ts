@@ -19,7 +19,7 @@ export class GroupMemberController {
   constructor(private readonly groupMemberService: GroupMemberService) {}
   @Get()
   @UseInterceptors(TransformResponseInterceptor)
-  @ResponseMessage('')
+  @ResponseMessage('Get all members successfully')
   findAll(
     @Query() { offset, limit, startId }: PaginationParams,
     @Query('groupId') groupId: number,

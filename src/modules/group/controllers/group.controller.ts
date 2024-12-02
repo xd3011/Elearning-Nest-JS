@@ -24,6 +24,7 @@ export class GroupController {
 
   @Post()
   @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Create group successfully')
   create(@Body() createTeamDto: CreateGroupDto, @User() user: IUser) {
     return this.groupService.create(createTeamDto, user);
   }
@@ -53,6 +54,8 @@ export class GroupController {
   }
 
   @Delete(':id')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Delete group successfully')
   remove(@Param('id') id: number, @User() user: IUser) {
     return this.groupService.remove(id, user);
   }
