@@ -23,6 +23,7 @@ export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
   @Post()
+  @UseInterceptors(TransformResponseInterceptor)
   create(@Body() createTeamDto: CreateGroupDto, @User() user: IUser) {
     return this.groupService.create(createTeamDto, user);
   }

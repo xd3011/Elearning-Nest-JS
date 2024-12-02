@@ -16,7 +16,7 @@ import { CreateChatMessageDto } from '@modules/chat/dto/create-chat-message.dto'
 import { ChatMessageService } from '@modules/chat/services/chatMessage.service';
 import { ChatService } from '@modules/chat/services/chat.service';
 import { CreatePostDto } from '@modules/post/dto/create-post.dto';
-import { PostService } from '@modules/post/post.service';
+import { PostService } from '@modules/post/services/post.service';
 
 export interface CustomSocket extends Socket {
   user: IUser;

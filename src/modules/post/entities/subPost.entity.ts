@@ -1,11 +1,17 @@
 import { User } from '@modules/user/entities/user.entity';
 import { TypeMessage } from '@shared/constants/message-type.constant';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Post } from './post.entity';
 
 @Entity()
 export class SubPost {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column()

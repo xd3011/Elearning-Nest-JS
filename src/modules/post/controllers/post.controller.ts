@@ -8,9 +8,9 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { PostService } from './post.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { PostService } from '../services/post.service';
+import { CreatePostDto } from '../dto/create-post.dto';
+import { UpdatePostDto } from '../dto/update-post.dto';
 import { User } from '@src/decorator/user.decorator';
 import { IUser } from '@modules/user/interface/user.interface';
 import { PaginationParams } from '@src/utils/types/paginationParams';
