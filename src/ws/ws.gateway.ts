@@ -17,6 +17,8 @@ import { ChatMessageService } from '@modules/chat/services/chatMessage.service';
 import { ChatService } from '@modules/chat/services/chat.service';
 import { CreatePostDto } from '@modules/post/dto/create-post.dto';
 import { PostService } from '@modules/post/services/post.service';
+import { CreateSubPostDto } from '@modules/post/dto/create-sub-post.dto';
+import { SubPostService } from '@modules/post/services/subPost.service';
 
 export interface CustomSocket extends Socket {
   user: IUser;
@@ -34,6 +36,7 @@ export class WsGateway {
     private readonly chatService: ChatService,
     private readonly chatMessageService: ChatMessageService,
     private readonly postService: PostService,
+    private readonly subPostService: SubPostService,
   ) {}
 
   async handleConnection(client: Socket) {
@@ -92,5 +95,15 @@ export class WsGateway {
   ) {
     const post = await this.postService.create(postDto, user);
     this.server.to(`/group/${postDto.groupId}`).emit(`/group/post`, post);
+  }
+
+  @SubscribeMessage('/sub-post')
+  async handleSubPostMessage(
+    @MessageBody() subPostDto: CreateSubPostDto,
+    @User() user: IUser,
+  ) {
+    const subPost = await this.subPostService.create(subPostDto, user);
+    const post = await this.postService.findOne(subPostDto.postId, user);
+    this.server.to(`/group/${post.group.id}`).emit(`/group/sub-post`, subPost);
   }
 }
