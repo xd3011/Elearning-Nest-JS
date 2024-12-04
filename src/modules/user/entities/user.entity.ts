@@ -1,3 +1,4 @@
+import { Role } from '@modules/role/entities/role.entity';
 import {
   Entity,
   Column,
@@ -50,8 +51,9 @@ export class User {
   @Column({ nullable: true })
   gender?: string;
 
-  @Column()
-  role: string;
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'role' })
+  role: Role;
 
   @Column({ nullable: true })
   image?: string;

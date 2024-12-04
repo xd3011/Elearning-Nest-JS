@@ -1,3 +1,5 @@
+import { Role } from '@modules/role/entities/role.entity';
+
 enum State {
   OFFLINE = 0,
   ONLINE = 1,
@@ -7,12 +9,16 @@ enum State {
   PENDING = 5,
 }
 
-export class CreateUserDto {
+export class RegisterUserDto {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
   phoneNumber?: string;
+}
+
+export class CreateUserDto extends RegisterUserDto {
+  role: number;
 }
 
 export class CreateUserResult {
@@ -24,7 +30,7 @@ export class CreateUserResult {
   phoneNumber?: string;
   age?: number;
   gender?: string;
-  role: string;
+  role: Role;
   image?: string;
   state: State;
   createdAt: Date;

@@ -51,7 +51,7 @@ export class GroupMemberService {
       group: { id: addMember.groupId },
       role: 2,
       status: Status.PENDING,
-      createdBy: user,
+      createdBy: { id: user.id },
     });
 
     // Send email to new member => click to link to join group
@@ -99,7 +99,7 @@ export class GroupMemberService {
       group: { id: groupId },
       role: 2,
       status: Status.ACTIVE,
-      createdBy: user,
+      createdBy: { id: user.id },
     });
     return newGroupMember;
   }

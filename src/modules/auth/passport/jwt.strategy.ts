@@ -10,10 +10,14 @@ import { TConfigs } from '@src/config';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { CUnauthorizedException } from '@shared/custom-http-exception';
 import { IUser } from '@modules/user/interface/user.interface';
+import { RoleService } from '@modules/role/role.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly configService: ConfigService<TConfigs>) {
+  constructor(
+    private readonly configService: ConfigService<TConfigs>,
+    private readonly roleService: RoleService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: configService.getOrThrow<TAuthConfig>('auth').jwtSecretKey,
@@ -21,8 +25,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: IUser) {
-    const { id, email } = payload;
-
+    const { id, email, role } = payload;
+    const roleDetail = await this.roleService.findOne(role);
+    const permissions = roleDetail
+      ? roleDetail.permission.map((per) => ({
+          id: per.id,
+          name: per.name,
+          description: per.description,
+          method: per.method,
+          path: per.path,
+        }))
+      : [];
     if (!id) {
       throw new CUnauthorizedException(
         JwtStrategy.name,
@@ -31,6 +44,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       );
     }
 
-    return { id, email };
+    return { id, email, role, permissions };
   }
 }

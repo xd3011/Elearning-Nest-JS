@@ -4,7 +4,6 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from './entities/role.entity';
 import { Repository } from 'typeorm';
-import { Permission } from '@modules/permission/entities/permission.entity';
 import { PermissionService } from '@modules/permission/permission.service';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { CBadRequestException } from '@shared/custom-http-exception';
@@ -85,6 +84,22 @@ export class RoleService {
     return roles;
   }
 
+  async findOneByName(name: string) {
+    const roles = await this.roleRepository
+      .createQueryBuilder('role')
+      .leftJoinAndSelect('role.permission', 'permission')
+      .where('role.name = :name', { name })
+      .getOne();
+    if (!roles) {
+      throw new CBadRequestException(
+        RoleService.name,
+        'Role not found',
+        ApiResponseCode.ROLE_NOT_FOUND,
+      );
+    }
+    return roles;
+  }
+
   async update(id: number, updateRoleDto: UpdateRoleDto) {
     const role = await this.roleRepository.findOne({ where: { id } });
     if (!role) {
@@ -107,13 +122,6 @@ export class RoleService {
     role.permission = getPermissions;
 
     return await this.roleRepository.save(role);
-    // return await this.roleRepository.update(
-    //   { id },
-    //   {
-    //     ...data,
-    //     permission: getPermissions,
-    //   },
-    // );
   }
 
   async remove(id: number) {

@@ -11,6 +11,7 @@ import { JwtStrategy } from './passport/jwt.strategy';
 import { TokenService } from './services/token.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Token } from './entities/token.entity';
+import { RoleModule } from '@modules/role/role.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { Token } from './entities/token.entity';
       }),
       inject: [ConfigService],
     }),
+    RoleModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, TokenService, LocalStrategy, JwtStrategy],

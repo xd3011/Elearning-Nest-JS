@@ -1,4 +1,7 @@
-import { CreateUserDto } from '@modules/user/dto/create-user.dto';
+import {
+  CreateUserDto,
+  RegisterUserDto,
+} from '@modules/user/dto/create-user.dto';
 import { IUser } from '@modules/user/interface/user.interface';
 import { UserService } from '@modules/user/user.service';
 import { Injectable } from '@nestjs/common';
@@ -9,6 +12,8 @@ import { Request, Response } from 'express';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { TokenService } from './token.service';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
+import { RoleService } from '@modules/role/role.service';
+import { Role } from '@modules/role/entities/role.entity';
 
 @Injectable()
 export class AuthService {
@@ -17,9 +22,10 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private tokenService: TokenService,
+    private readonly roleService: RoleService,
   ) {}
-  async register(createUserDto: CreateUserDto) {
-    let newUser = await this.userService.register(createUserDto);
+  async register(registerUserDto: RegisterUserDto) {
+    let newUser = await this.userService.register(registerUserDto);
     return {
       id: newUser?.id,
       createdAt: newUser?.createdAt,
@@ -47,12 +53,16 @@ export class AuthService {
   };
 
   async login(user: IUser, res: Response) {
-    const { id, email } = user;
+    const { id, email, role } = user;
+    const roleDetail = await this.roleService.findOne(
+      (role as unknown as Role).id,
+    );
     const payload = {
       sub: 'token login',
       iss: 'from server',
       id: id,
       email: email,
+      role: roleDetail.id,
     };
     const refreshToken = this.createRefreshToken(payload);
     await this.tokenService.saveToken(refreshToken, id);

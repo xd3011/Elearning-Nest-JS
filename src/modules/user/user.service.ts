@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto, CreateUserResult } from './dto/create-user.dto';
+import {
+  CreateUserDto,
+  CreateUserResult,
+  RegisterUserDto,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, MoreThanOrEqual, Repository } from 'typeorm';
@@ -7,12 +11,14 @@ import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
+import { RoleService } from '@modules/role/role.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private roleService: RoleService,
   ) {}
 
   private async hashPassword(password: string) {
@@ -25,7 +31,13 @@ export class UserService {
   }
 
   async findOneByUsername(email: string) {
-    const user = await this.usersRepository.findOneBy({ email: email });
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .where('user.email = :email', { email })
+      .select(['user', 'role.id', 'role.name', 'role.description'])
+      .getOne();
+
     if (!user) {
       throw new CBadRequestException(
         UserService.name,
@@ -37,9 +49,9 @@ export class UserService {
     return user;
   }
 
-  async register(createUserDto: CreateUserDto) {
+  async register(registerUserDto: RegisterUserDto) {
     const isExist = await this.usersRepository.findOneBy({
-      email: createUserDto.email,
+      email: registerUserDto.email,
     });
     if (isExist) {
       throw new CBadRequestException(
@@ -49,11 +61,12 @@ export class UserService {
         'User already exists',
       );
     }
-    const password = await this.hashPassword(createUserDto.password);
+    const password = await this.hashPassword(registerUserDto.password);
+    const role = await this.roleService.findOneByName('User');
     const newUser = await this.usersRepository.save({
-      ...createUserDto,
+      ...registerUserDto,
       password,
-      role: 'user',
+      role: { id: role.id },
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -91,10 +104,11 @@ export class UserService {
         'Creator user not found',
       );
     }
+    await this.roleService.findOne(createUserDto.role);
     const newUser = await this.usersRepository.save({
       ...createUserDto,
       password,
-      role: 'user',
+      role: { id: createUserDto.role },
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: createdByUser, // Set createdBy field
@@ -178,10 +192,12 @@ export class UserService {
         'User update not found',
       );
     }
+    await this.roleService.findOne(updateUserDto.role);
     const userUpdate = await this.usersRepository.update(
       { id },
       {
         ...updateUserDto,
+        role: { id: updateUserDto.role },
         updatedBy: getUserUpdate,
         updatedAt: new Date(),
       },
