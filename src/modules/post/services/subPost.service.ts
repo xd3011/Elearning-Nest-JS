@@ -27,6 +27,7 @@ export class SubPostService {
       user: { id: user.id },
       post: { id: createSubPostDto.postId },
       reply: createSubPostDto?.reply ? { id: createSubPostDto.reply } : null,
+      createdAt: new Date(),
     });
   }
 
@@ -122,7 +123,7 @@ export class SubPostService {
     }
     return await this.subPostRepository.update(
       { id },
-      { message: updateSubPost.message },
+      { message: updateSubPost.message, updatedAt: new Date() },
     );
   }
 

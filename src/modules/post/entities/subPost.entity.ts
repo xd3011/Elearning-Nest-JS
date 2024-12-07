@@ -2,10 +2,13 @@ import { User } from '@modules/user/entities/user.entity';
 import { TypeMessage } from '@shared/constants/message-type.constant';
 import {
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Post } from './post.entity';
 
@@ -32,4 +35,13 @@ export class SubPost {
   @ManyToOne(() => SubPost, { nullable: true })
   @JoinColumn({ name: 'reply' })
   reply?: SubPost;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
