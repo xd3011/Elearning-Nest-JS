@@ -56,7 +56,13 @@ export class PostService {
     if (startId) {
       query.andWhere('post.id < :startId', { startId });
     }
-    const [posts, total] = await query.skip(skip).take(take).getManyAndCount();
+    let [posts, total] = await query
+      .skip(skip)
+      .take(take)
+      .orderBy('post.createdAt', 'DESC')
+      .getManyAndCount();
+
+    posts.reverse();
     return {
       total,
       page: offset,

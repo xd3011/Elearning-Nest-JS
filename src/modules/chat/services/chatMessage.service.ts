@@ -74,7 +74,8 @@ export class ChatMessageService {
       query.andWhere('chatMessage.id >= :startId', { startId });
     }
 
-    const [chatMessages, total] = await query.getManyAndCount();
+    let [chatMessages, total] = await query.getManyAndCount();
+    chatMessages.reverse();
     return {
       total,
       page: offset,

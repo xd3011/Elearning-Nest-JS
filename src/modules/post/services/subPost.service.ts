@@ -65,10 +65,12 @@ export class SubPostService {
     if (startId) {
       query.andWhere('subPost.id < :startId', { startId });
     }
-    const [subPosts, total] = await query
+    let [subPosts, total] = await query
       .skip(skip)
       .take(take)
+      .orderBy('subPost.createdAt', 'DESC')
       .getManyAndCount();
+    subPosts.reverse();
     return {
       total,
       page: offset,
