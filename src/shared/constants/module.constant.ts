@@ -8,6 +8,7 @@ export enum Module {
   Role = 'Role',
   Chat = 'Chat',
   ChatMessage = 'Chat Message',
+  SubPost = 'Sub Post',
 }
 
 export enum Method {

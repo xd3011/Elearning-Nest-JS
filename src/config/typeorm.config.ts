@@ -53,6 +53,9 @@ const config = {
   migrations: [join(__dirname, '../', 'migrations/', '*{.ts,.js}')],
   autoLoadEntities: true,
   synchronize: false,
+  // ssl: {
+  //   rejectUnauthorized: false,
+  // },
 };
 
 export default registerAs('typeorm', () => config);
