@@ -106,4 +106,143 @@ export class WsGateway {
     const post = await this.postService.findOne(subPostDto.postId, user);
     this.server.to(`/group/${post.group.id}`).emit(`/group/sub-post`, subPost);
   }
+
+  @SubscribeMessage('/calling')
+  async handleCalling(
+    @ConnectedSocket() client: CustomSocket,
+    @MessageBody() payload: CreateChatMessageDto,
+    @User() user: IUser,
+  ) {
+    const chatMessage = await this.chatMessageService.create(payload, user);
+    const getUserByChat = await this.chatService.getUserMessage(
+      payload.chatId,
+      user,
+    );
+    const getClientIds = await this.wsService.getClientIds(getUserByChat);
+    this.server.to(client.id).emit('/calling-receiver', {
+      chatId: payload.chatId,
+      chatMessage: chatMessage,
+    });
+    if (getClientIds.clientIds.length > 0) {
+      getClientIds.clientIds.forEach((clientId) => {
+        this.server.to(clientId).emit('/calling-send', {
+          chatId: payload.chatId,
+          chatMessage: chatMessage,
+        });
+      });
+    }
+  }
+
+  @SubscribeMessage('/calling-accept')
+  async handleCallingAccept(
+    @ConnectedSocket() client: CustomSocket,
+    @MessageBody() payload: { chatId: number },
+    @User() user: IUser,
+  ) {
+    await this.handleCallingResponse(client, payload, user, true);
+  }
+
+  @SubscribeMessage('/calling-reject')
+  async handleCallingReject(
+    @ConnectedSocket() client: CustomSocket,
+    @MessageBody() payload: { chatId: number },
+    @User() user: IUser,
+  ) {
+    await this.handleCallingResponse(client, payload, user, false);
+  }
+
+  @SubscribeMessage('/calling/offer')
+  async handleOffer(
+    @ConnectedSocket() client: CustomSocket,
+    @MessageBody() payload: { offer: any; chatId: number },
+    @User() user: IUser,
+  ) {
+    await this.handleWebSocketEvent(
+      client,
+      payload,
+      user,
+      'offer',
+      '/calling/offer',
+    );
+  }
+
+  @SubscribeMessage('/calling/answer')
+  async handleAnswer(
+    @ConnectedSocket() client: CustomSocket,
+    @MessageBody() payload: { answer: any; chatId: number },
+    @User() user: IUser,
+  ) {
+    await this.handleWebSocketEvent(
+      client,
+      payload,
+      user,
+      'answer',
+      '/calling/answer',
+    );
+  }
+
+  @SubscribeMessage('/calling/ice-candidate')
+  async handleIceCandidate(
+    @ConnectedSocket() client: CustomSocket,
+    @MessageBody() payload: { candidate: any; chatId: number },
+    @User() user: IUser,
+  ) {
+    await this.handleWebSocketEvent(
+      client,
+      payload,
+      user,
+      'candidate',
+      '/calling/ice-candidate',
+    );
+  }
+
+  private async handleWebSocketEvent(
+    client: CustomSocket,
+    payload: { [key: string]: any; chatId: number },
+    user: IUser,
+    dataReceive: string,
+    eventType: string,
+  ) {
+    const { chatId } = payload;
+    if (!chatId || !payload[dataReceive]) {
+      return this.server
+        .to(client.id)
+        .emit('error', `Invalid ${dataReceive} or chatId`);
+    }
+
+    const getUserByChat = await this.chatService.getUserMessage(chatId, user);
+    const getClientIds = await this.wsService.getClientIds(getUserByChat);
+
+    if (getClientIds.clientIds.length > 0) {
+      getClientIds.clientIds.forEach((clientId) => {
+        this.server
+          .to(clientId)
+          .emit(eventType, { [eventType]: payload[eventType], chatId });
+      });
+    }
+  }
+
+  private async handleCallingResponse(
+    client: CustomSocket,
+    payload: { chatId: number },
+    user: IUser,
+    success: boolean,
+  ) {
+    const { chatId } = payload;
+    if (!chatId) {
+      return this.server.to(client.id).emit('error', 'Invalid chatId');
+    }
+
+    const getUserByChat = await this.chatService.getUserMessage(chatId, user);
+    const getClientIds = await this.wsService.getClientIds(getUserByChat);
+
+    if (getClientIds.clientIds.length > 0) {
+      getClientIds.clientIds.forEach((clientId) => {
+        this.server.to(clientId).emit('/calling-return', {
+          chatId,
+          success,
+        });
+      });
+    }
+  }
 }
