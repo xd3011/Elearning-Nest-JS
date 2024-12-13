@@ -44,4 +44,39 @@ export class WSService {
     );
     return cacheData;
   }
+
+  async cacheUserInMetting(userId: number, groupId: number) {
+    const cacheKey = `/meeting/${groupId}`;
+    let cacheData = await this.cacheManager.get<{ userIds: number[] }>(
+      cacheKey,
+    );
+    if (!cacheData) {
+      cacheData = { userIds: [] };
+    }
+    if (cacheData.userIds.includes(userId)) {
+      return;
+    }
+    cacheData.userIds.push(userId);
+    await this.cacheManager.set(cacheKey, cacheData);
+  }
+
+  async removeUserInMetting(userId: number, groupId: number) {
+    const cacheKey = `/meeting/${groupId}`;
+    let cacheData = await this.cacheManager.get<{ userIds: number[] }>(
+      cacheKey,
+    );
+    if (!cacheData) {
+      return;
+    }
+    cacheData.userIds = cacheData.userIds.filter((id) => id !== userId);
+    await this.cacheManager.set(cacheKey, cacheData);
+  }
+
+  async getUsersInMetting(groupId: number) {
+    const cacheKey = `/meeting/${groupId}`;
+    let cacheData = await this.cacheManager.get<{ userIds: number[] }>(
+      cacheKey,
+    );
+    return cacheData;
+  }
 }

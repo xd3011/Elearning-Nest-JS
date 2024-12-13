@@ -23,7 +23,7 @@ export class PostService {
     await this.groupService.findOne(createPostDto.groupId, user);
     return await this.postRepository.save({
       ...createPostDto,
-      user: { id: user.id },
+      user: { id: user.id, email: user.email },
       group: { id: createPostDto.groupId },
     });
   }

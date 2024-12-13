@@ -196,6 +196,85 @@ export class WsGateway {
     );
   }
 
+  // @SubscribeMessage('/calling/leave')
+  // async handleCallingLeave(
+  //   @ConnectedSocket() socket: Socket,
+  //   @MessageBody('chatId') chatId: number,
+  //   @User() user: IUser,
+  // ) {
+  //   const getUserByChat = await this.chatService.getUserMessage(chatId, user);
+  //   const getClientIds = await this.wsService.getClientIds(getUserByChat);
+  //   if (getClientIds.clientIds.length > 0) {
+  //     getClientIds.clientIds.forEach((clientId) => {
+  //       this.server.to(clientId).emit('/calling-leave', { chatId });
+  //     });
+  //   }
+  // }
+
+  @SubscribeMessage('/metting/leave')
+  async handleMettingLeave(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody('groupId') groupId: number,
+    @User() user: IUser,
+  ) {
+    this.server.in(socket.id).socketsLeave(`/metting/${groupId}`);
+    await this.wsService.removeUserInMetting(user.id, groupId);
+    socket.broadcast.to(`/metting/${groupId}`).emit('/metting/user-leave', {
+      userId: user.id,
+    });
+  }
+
+  @SubscribeMessage('/metting/join')
+  async handleMettingJoin(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody('groupId') groupId: number,
+    @User() user: IUser,
+  ) {
+    this.server.in(socket.id).socketsJoin(`/metting/${groupId}`);
+    await this.wsService.cacheUserInMetting(user.id, groupId);
+    const usersInRoom = await this.wsService.getUsersInMetting(groupId);
+    socket.emit('/metting/users', usersInRoom);
+
+    socket.broadcast.to(`/metting/${groupId}`).emit('/metting/user-new', {
+      userId: user.id,
+    });
+  }
+
+  @SubscribeMessage('/metting/offer')
+  async handleMettingOffer(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() payload: { offer: any; groupId: number },
+  ) {
+    socket.broadcast.to(`/metting/${payload.groupId}`).emit('/metting/offer', {
+      offer: payload.offer,
+      groupId: payload.groupId,
+    });
+  }
+
+  @SubscribeMessage('/metting/answer')
+  async handleMettingAnswer(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() payload: { answer: any; groupId: number },
+  ) {
+    socket.broadcast.to(`/metting/${payload.groupId}`).emit('/metting/answer', {
+      answer: payload.answer,
+      groupId: payload.groupId,
+    });
+  }
+
+  @SubscribeMessage('/metting/ice-candidate')
+  async handleMettingIceCandidate(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() payload: { candidate: any; groupId: number },
+  ) {
+    socket.broadcast
+      .to(`/metting/${payload.groupId}`)
+      .emit('/metting/ice-candidate', {
+        candidate: payload.candidate,
+        groupId: payload.groupId,
+      });
+  }
+
   private async handleWebSocketEvent(
     client: CustomSocket,
     payload: { [key: string]: any; chatId: number },

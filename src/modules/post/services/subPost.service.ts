@@ -24,7 +24,7 @@ export class SubPostService {
     }
     return await this.subPostRepository.save({
       ...createSubPostDto,
-      user: { id: user.id },
+      user: { id: user.id, email: user.email },
       post: { id: createSubPostDto.postId },
       reply: createSubPostDto?.reply ? { id: createSubPostDto.reply } : null,
       createdAt: new Date(),
