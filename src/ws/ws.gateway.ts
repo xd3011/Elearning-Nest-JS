@@ -243,36 +243,52 @@ export class WsGateway {
   @SubscribeMessage('/metting/offer')
   async handleMettingOffer(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() payload: { offer: any; groupId: number },
+    @MessageBody() payload: { offer: any; groupId: number; userId: number },
   ) {
-    socket.broadcast.to(`/metting/${payload.groupId}`).emit('/metting/offer', {
-      offer: payload.offer,
-      groupId: payload.groupId,
-    });
+    await this.handleMettingEvent(socket, payload, '/metting/offer');
   }
 
   @SubscribeMessage('/metting/answer')
   async handleMettingAnswer(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() payload: { answer: any; groupId: number },
+    @MessageBody() payload: { answer: any; groupId: number; userId: number },
   ) {
-    socket.broadcast.to(`/metting/${payload.groupId}`).emit('/metting/answer', {
-      answer: payload.answer,
-      groupId: payload.groupId,
-    });
+    await this.handleMettingEvent(socket, payload, '/metting/answer');
   }
 
   @SubscribeMessage('/metting/ice-candidate')
   async handleMettingIceCandidate(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() payload: { candidate: any; groupId: number },
+    @MessageBody() payload: { candidate: any; groupId: number; userId: number },
   ) {
-    socket.broadcast
-      .to(`/metting/${payload.groupId}`)
-      .emit('/metting/ice-candidate', {
-        candidate: payload.candidate,
-        groupId: payload.groupId,
+    await this.handleMettingEvent(socket, payload, '/metting/ice-candidate');
+  }
+
+  private async handleMettingEvent(
+    socket: Socket,
+    payload: { [key: string]: any; groupId: number; userId: number },
+    event: string,
+  ) {
+    const userIds = await this.wsService.getClientIds(payload.userId);
+    const room = `/metting/${payload.groupId}`;
+    const socketsInRoom = await this.getSocketsInRoom(room);
+
+    const targetSocketId = socketsInRoom.find((socketId) =>
+      userIds.clientIds.includes(socketId.id),
+    );
+
+    if (targetSocketId) {
+      this.server.to(targetSocketId.id).emit(event, {
+        ...payload,
       });
+    }
+  }
+
+  private async getSocketsInRoom(room: string) {
+    const sockets = await this.server.in(room).fetchSockets();
+    return sockets.map((socket) => ({
+      id: socket.id,
+    }));
   }
 
   private async handleWebSocketEvent(
