@@ -244,28 +244,31 @@ export class WsGateway {
   async handleMettingOffer(
     @ConnectedSocket() socket: Socket,
     @MessageBody() payload: { offer: any; groupId: number; userId: number },
+    @User() user: IUser,
   ) {
-    await this.handleMettingEvent(socket, payload, '/metting/offer');
+    await this.handleMettingEvent(user, payload, '/metting/offer');
   }
 
   @SubscribeMessage('/metting/answer')
   async handleMettingAnswer(
     @ConnectedSocket() socket: Socket,
     @MessageBody() payload: { answer: any; groupId: number; userId: number },
+    @User() user: IUser,
   ) {
-    await this.handleMettingEvent(socket, payload, '/metting/answer');
+    await this.handleMettingEvent(user, payload, '/metting/answer');
   }
 
   @SubscribeMessage('/metting/ice-candidate')
   async handleMettingIceCandidate(
     @ConnectedSocket() socket: Socket,
     @MessageBody() payload: { candidate: any; groupId: number; userId: number },
+    @User() user: IUser,
   ) {
-    await this.handleMettingEvent(socket, payload, '/metting/ice-candidate');
+    await this.handleMettingEvent(user, payload, '/metting/ice-candidate');
   }
 
   private async handleMettingEvent(
-    socket: Socket,
+    user: IUser,
     payload: { [key: string]: any; groupId: number; userId: number },
     event: string,
   ) {
@@ -276,10 +279,11 @@ export class WsGateway {
     const targetSocketId = socketsInRoom.find((socketId) =>
       userIds.clientIds.includes(socketId.id),
     );
-
+    const { userId, ...data } = payload;
     if (targetSocketId) {
       this.server.to(targetSocketId.id).emit(event, {
-        ...payload,
+        ...data,
+        userId: user.id,
       });
     }
   }
@@ -312,7 +316,7 @@ export class WsGateway {
       getClientIds.clientIds.forEach((clientId) => {
         this.server
           .to(clientId)
-          .emit(eventType, { [eventType]: payload[eventType], chatId });
+          .emit(eventType, { [dataReceive]: payload[dataReceive], chatId });
       });
     }
   }
