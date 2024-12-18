@@ -1,4 +1,5 @@
 import { RecurrenceType } from '@shared/constants/schedule-metting.constant';
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
@@ -25,6 +26,7 @@ export class CreateScheduleDto {
 
   @IsDateString()
   @IsNotEmpty()
+  @Transform(({ value }) => new Date(value))
   startTime: Date;
 
   @IsBoolean()
@@ -39,5 +41,6 @@ export class CreateScheduleDto {
   @IsDateString()
   @IsNotEmpty()
   @ValidateIf((o) => o.recurrence === true)
+  @Transform(({ value }) => new Date(value))
   endTime: Date;
 }

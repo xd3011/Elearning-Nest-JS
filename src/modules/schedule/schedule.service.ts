@@ -20,92 +20,70 @@ export class ScheduleService {
 
   async create(createScheduleDto: CreateScheduleDto, user: IUser) {
     await this.groupService.findOne(createScheduleDto.groupId, user);
+    const startTime = new Date(createScheduleDto.startTime);
+
+    if (startTime < new Date()) {
+      throw new CBadRequestException(
+        ScheduleService.name,
+        'Cannot create a schedule that has passed',
+        ApiResponseCode.SCHEDULE_INVALID_TIME,
+        'Cannot create a schedule that has passed',
+      );
+    }
+
     if (!createScheduleDto.recurrence) {
       return await this.scheduleRepository.save({
         title: createScheduleDto.title,
         message: createScheduleDto.message,
-        startTime: createScheduleDto.startTime,
+        startTime,
         user: { id: user.id, email: user.email },
         group: { id: createScheduleDto.groupId },
       });
     } else {
-      switch (createScheduleDto?.type) {
-        case 1:
-          return await this.dataSource.transaction(async (manager) => {
-            const schedules: Schedule[] = [];
-            let currentTime = new Date(createScheduleDto.startTime);
-            while (new Date(createScheduleDto.endTime) >= currentTime) {
-              const savedSchedule = await manager.save(Schedule, {
-                title: createScheduleDto.title,
-                message: createScheduleDto.message,
-                startTime: currentTime,
-                user: { id: user.id, email: user.email },
-                group: { id: createScheduleDto.groupId },
-              });
-              schedules.push(savedSchedule);
-              currentTime.setDate(currentTime.getDate() + 1);
-            }
-            return schedules;
-          });
-        case 2:
-          return await this.dataSource.transaction(async (manager) => {
-            const schedules: Schedule[] = [];
-            let currentTime = new Date(createScheduleDto.startTime);
-            while (new Date(createScheduleDto.endTime) >= currentTime) {
-              const savedSchedule = await manager.save(Schedule, {
-                title: createScheduleDto.title,
-                message: createScheduleDto.message,
-                startTime: currentTime,
-                user: { id: user.id, email: user.email },
-                group: { id: createScheduleDto.groupId },
-              });
-              schedules.push(savedSchedule);
-              currentTime.setDate(currentTime.getDate() + 7);
-            }
-            return schedules;
-          });
-        case 3:
-          return await this.dataSource.transaction(async (manager) => {
-            const schedules: Schedule[] = [];
-            let currentTime = new Date(createScheduleDto.startTime);
-            while (new Date(createScheduleDto.endTime) >= currentTime) {
-              const savedSchedule = await manager.save(Schedule, {
-                title: createScheduleDto.title,
-                message: createScheduleDto.message,
-                startTime: currentTime,
-                user: { id: user.id, email: user.email },
-                group: { id: createScheduleDto.groupId },
-              });
-              schedules.push(savedSchedule);
-              currentTime.setMonth(currentTime.getMonth() + 1);
-            }
-            return schedules;
-          });
-        case 4:
-          return await this.dataSource.transaction(async (manager) => {
-            const schedules: Schedule[] = [];
-            let currentTime = new Date(createScheduleDto.startTime);
-            while (new Date(createScheduleDto.endTime) >= currentTime) {
-              const savedSchedule = await manager.save(Schedule, {
-                title: createScheduleDto.title,
-                message: createScheduleDto.message,
-                startTime: currentTime,
-                user: { id: user.id, email: user.email },
-                group: { id: createScheduleDto.groupId },
-              });
-              schedules.push(savedSchedule);
-              currentTime.setFullYear(currentTime.getFullYear() + 1);
-            }
-            return schedules;
-          });
-        default:
-          throw new CBadRequestException(
-            ScheduleService.name,
-            'Invalid recurrence type',
-            ApiResponseCode.SCHEDULE_NOT_RECURRENCE_TYPE,
-            'Invalid recurrence type',
-          );
+      const endTime = new Date(createScheduleDto.endTime);
+      if (endTime < startTime) {
+        throw new CBadRequestException(
+          ScheduleService.name,
+          'End time must be greater than start time',
+          ApiResponseCode.SCHEDULE_INVALID_TIME,
+          'End time must be greater than start time',
+        );
       }
+
+      const recurrenceIntervals = {
+        1: (date: Date) => date.setDate(date.getDate() + 1),
+        2: (date: Date) => date.setDate(date.getDate() + 7),
+        3: (date: Date) => date.setMonth(date.getMonth() + 1),
+        4: (date: Date) => date.setFullYear(date.getFullYear() + 1),
+      };
+
+      const intervalFunction = recurrenceIntervals[createScheduleDto.type];
+      if (!intervalFunction) {
+        throw new CBadRequestException(
+          ScheduleService.name,
+          'Invalid recurrence type',
+          ApiResponseCode.SCHEDULE_NOT_RECURRENCE_TYPE,
+          'Invalid recurrence type',
+        );
+      }
+
+      return await this.dataSource.transaction(async (manager) => {
+        const schedules: Schedule[] = [];
+        let currentTime = new Date(createScheduleDto.startTime);
+
+        while (endTime >= currentTime) {
+          const savedSchedule = await manager.save(Schedule, {
+            title: createScheduleDto.title,
+            message: createScheduleDto.message,
+            startTime: currentTime,
+            user: { id: user.id, email: user.email },
+            group: { id: createScheduleDto.groupId },
+          });
+          schedules.push(savedSchedule);
+          intervalFunction(currentTime);
+        }
+        return schedules;
+      });
     }
   }
 
