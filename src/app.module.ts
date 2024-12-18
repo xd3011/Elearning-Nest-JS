@@ -16,6 +16,7 @@ import typeormConfig from './config/typeorm.config';
 import { WSModule } from './ws/ws.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { PostModule } from './modules/post/post.module';
+import { ScheduleModule } from './modules/schedule/schedule.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PostModule } from './modules/post/post.module';
     WSModule,
     CacheModule.register({ isGlobal: true, ttl: 0 }),
     PostModule,
+    ScheduleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
