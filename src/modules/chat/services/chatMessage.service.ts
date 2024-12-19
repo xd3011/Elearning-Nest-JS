@@ -43,6 +43,35 @@ export class ChatMessageService {
     });
   }
 
+  async getAllCallingForUser(user: IUser) {
+    const query = await this.chatMessageRepository
+      .createQueryBuilder('chatMessage')
+      .innerJoinAndSelect('chatMessage.chat', 'chat')
+      .innerJoinAndSelect('chat.members', 'chatMember')
+      .innerJoinAndSelect('chatMember.user', 'user')
+      .select(['chatMessage', 'chat', 'chatMember'])
+      .addSelect(['user.id', 'user.email', 'user.firstName', 'user.lastName'])
+      .where('chatMessage.type = "MEETING"')
+      .andWhere('chatMessage.startTime < :currentTime', {
+        currentTime: new Date(),
+      })
+      .getMany();
+    const allCalling = query
+      .filter((chatMessage) => {
+        return chatMessage.chat.members.some(
+          (member) => member.user.id === user.id,
+        );
+      })
+      .map((chatMessage) => {
+        delete chatMessage.chat.members;
+        return chatMessage;
+      });
+    return {
+      total: allCalling.length,
+      data: allCalling,
+    };
+  }
+
   async findAll(
     chatId: number,
     user: IUser,

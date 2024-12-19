@@ -71,6 +71,35 @@ export class PostService {
     };
   }
 
+  async getAllMettingForUser(user: IUser) {
+    const query = await this.postRepository
+      .createQueryBuilder('post')
+      .innerJoinAndSelect('post.group', 'group')
+      .innerJoinAndSelect('group.members', 'groupMember')
+      .innerJoinAndSelect('groupMember.user', 'user')
+      .select(['post', 'group.id', 'group.name', 'groupMember'])
+      .addSelect(['user.id', 'user.email', 'user.firstName', 'user.lastName'])
+      .where('post.type = "MEETING"')
+      .andWhere('post.startTime < :currentTime', {
+        currentTime: new Date(),
+      })
+      .orderBy('post.startTime', 'DESC')
+      .getMany();
+    const allMetting = query
+      .filter((post) => {
+        return post.group.members.some((member) => member.user.id === user.id);
+      })
+      .map((post) => {
+        delete post.group.members;
+        return post;
+      });
+
+    return {
+      total: allMetting.length,
+      data: allMetting,
+    };
+  }
+
   async findOne(id: number, user: IUser) {
     const query = this.postRepository
       .createQueryBuilder('post')

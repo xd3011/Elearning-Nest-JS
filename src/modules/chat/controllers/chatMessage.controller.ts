@@ -32,6 +32,13 @@ export class ChatMessageController {
     return await this.chatMessageService.create(chatMessageDto, user);
   }
 
+  @Get('allCalling')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Get all calling successfully')
+  async findAllCalling(@User() user: IUser) {
+    return await this.chatMessageService.getAllCallingForUser(user);
+  }
+
   @Get('get-all/:id')
   @UseInterceptors(TransformResponseInterceptor)
   @ResponseMessage('Get all chat messages successfully')
