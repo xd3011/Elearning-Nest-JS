@@ -51,10 +51,8 @@ export class ChatMessageService {
       .innerJoinAndSelect('chatMember.user', 'user')
       .select(['chatMessage', 'chat', 'chatMember'])
       .addSelect(['user.id', 'user.email', 'user.firstName', 'user.lastName'])
-      .where('chatMessage.type = "MEETING"')
-      .andWhere('chatMessage.startTime < :currentTime', {
-        currentTime: new Date(),
-      })
+      .where('chatMessage.type = :type', { type: 'MEETING' })
+      .orderBy('chatMessage.createdAt', 'DESC')
       .getMany();
     const allCalling = query
       .filter((chatMessage) => {

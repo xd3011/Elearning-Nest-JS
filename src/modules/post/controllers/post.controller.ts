@@ -40,7 +40,7 @@ export class PostController {
     return this.postService.findAll(groupId, user, offset, limit, startId);
   }
 
-  @Get('allMetting')
+  @Get('allMeeting')
   @UseInterceptors(TransformResponseInterceptor)
   @ResponseMessage('Get all metting successfully')
   findAllMetting(@User() user: IUser) {

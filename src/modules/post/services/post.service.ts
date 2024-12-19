@@ -79,11 +79,11 @@ export class PostService {
       .innerJoinAndSelect('groupMember.user', 'user')
       .select(['post', 'group.id', 'group.name', 'groupMember'])
       .addSelect(['user.id', 'user.email', 'user.firstName', 'user.lastName'])
-      .where('post.type = "MEETING"')
-      .andWhere('post.startTime < :currentTime', {
+      .where('post.type = :type', { type: 'MEETING' })
+      .andWhere('post.createdAt < :currentTime', {
         currentTime: new Date(),
       })
-      .orderBy('post.startTime', 'DESC')
+      .orderBy('post.createdAt', 'DESC')
       .getMany();
     const allMetting = query
       .filter((post) => {
