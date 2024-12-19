@@ -46,11 +46,17 @@ export class ChatMessageService {
   async getAllCallingForUser(user: IUser) {
     const query = await this.chatMessageRepository
       .createQueryBuilder('chatMessage')
+      .innerJoinAndSelect('chatMessage.user', 'userAction')
       .innerJoinAndSelect('chatMessage.chat', 'chat')
       .innerJoinAndSelect('chat.members', 'chatMember')
       .innerJoinAndSelect('chatMember.user', 'user')
-      .select(['chatMessage', 'chat', 'chatMember'])
-      .addSelect(['user.id', 'user.email', 'user.firstName', 'user.lastName'])
+      .select(['chatMessage', 'chat', 'chatMember', 'user.id'])
+      .addSelect([
+        'userAction.id',
+        'userAction.email',
+        'userAction.firstName',
+        'userAction.lastName',
+      ])
       .where('chatMessage.type = :type', { type: 'MEETING' })
       .orderBy('chatMessage.createdAt', 'DESC')
       .getMany();
