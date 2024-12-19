@@ -125,9 +125,21 @@ export class ScheduleService {
   }
 
   async findOne(id: number, user: IUser) {
-    const schedule = await this.scheduleRepository.findOne({
-      where: { id },
-    });
+    const schedule = await this.scheduleRepository
+      .createQueryBuilder('schedule')
+      .innerJoinAndSelect('schedule.group', 'group')
+      .innerJoinAndSelect('schedule.user', 'user')
+      .select(['schedule'])
+      .addSelect([
+        'group.id',
+        'group.name',
+        'user.id',
+        'user.email',
+        'user.firstName',
+        'user.lastName',
+      ])
+      .where('schedule.id = :id', { id })
+      .getOne();
     if (!schedule) {
       throw new CBadRequestException(
         ScheduleService.name,
