@@ -33,6 +33,11 @@ export class ScheduleController {
     return this.scheduleService.findAll(groupId, user, offset, limit, startId);
   }
 
+  @Get('allSchedule')
+  findAllSchedule(@User() user: IUser) {
+    return this.scheduleService.getAllSchedulesForUser(user);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: number, @User() user: IUser) {
     return this.scheduleService.findOne(id, user);

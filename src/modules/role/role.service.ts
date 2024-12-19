@@ -115,8 +115,6 @@ export class RoleService {
       permissions,
     );
     await this.checkRoleExist(permissions);
-    console.log(getPermissions);
-
     role.name = data.name;
     role.description = data.description;
     role.permission = getPermissions;

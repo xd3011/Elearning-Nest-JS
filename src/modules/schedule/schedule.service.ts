@@ -87,6 +87,49 @@ export class ScheduleService {
     }
   }
 
+  async getAllSchedulesForUser(user: IUser) {
+    const schedules = await this.scheduleRepository
+      .createQueryBuilder('schedule')
+      .innerJoinAndSelect('schedule.group', 'group')
+      .innerJoinAndSelect('group.members', 'groupMember')
+      .innerJoinAndSelect('groupMember.user', 'memberUser')
+      .select([
+        'schedule',
+        'group.id',
+        'group.name',
+        'groupMember',
+        'memberUser.id',
+        'memberUser.email',
+        'memberUser.firstName',
+        'memberUser.lastName',
+      ])
+      .where('schedule.startTime >= :currentTime', {
+        currentTime: new Date(),
+      })
+      .orderBy('schedule.startTime', 'ASC')
+      .getMany();
+    const schedulesForUser = schedules
+      .filter((schedule) =>
+        schedule.group.members.some((member) => member.user.id === user.id),
+      )
+      .map((schedule) => {
+        delete schedule.group.members;
+        return schedule;
+      });
+    if (schedulesForUser.length <= 0) {
+      throw new CBadRequestException(
+        ScheduleService.name,
+        'Schedule not found',
+        ApiResponseCode.SCHEDULE_NOT_FOUND,
+        'Schedule not found',
+      );
+    }
+    return {
+      total: schedulesForUser.length,
+      data: schedulesForUser,
+    };
+  }
+
   async findAll(
     groupId: number,
     user: IUser,
