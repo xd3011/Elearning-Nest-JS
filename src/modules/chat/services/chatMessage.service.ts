@@ -37,6 +37,7 @@ export class ChatMessageService {
       user: { id: user.id },
       chat: { id: chatMessageDto.chatId },
       message: chatMessageDto.message,
+      fileName: chatMessageDto.fileName ? chatMessageDto.fileName : null,
       replyMessage: chatMessageDto.replyMessage ? chatMessage : null,
       type: chatMessageDto.type,
     });
