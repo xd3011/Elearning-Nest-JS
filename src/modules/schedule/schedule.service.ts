@@ -75,7 +75,7 @@ export class ScheduleService {
           const savedSchedule = await manager.save(Schedule, {
             title: createScheduleDto.title,
             message: createScheduleDto.message,
-            startTime: currentTime,
+            startTime: new Date(currentTime),
             user: { id: user.id, email: user.email },
             group: { id: createScheduleDto.groupId },
           });
