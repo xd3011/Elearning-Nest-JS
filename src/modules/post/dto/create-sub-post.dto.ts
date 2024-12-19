@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreateSubPostDto {
@@ -20,6 +21,11 @@ export class CreateSubPostDto {
   @IsEnum(TypeMessage)
   @IsNotEmpty()
   type: TypeMessage;
+
+  @IsString()
+  @IsOptional()
+  @ValidateIf((o) => ['IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT'].includes(o.type))
+  fileName?: string;
 
   @IsNumber()
   @IsOptional()

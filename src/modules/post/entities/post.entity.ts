@@ -34,6 +34,9 @@ export class Post {
   })
   type: TypeMessage;
 
+  @Column({ nullable: true })
+  fileName?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -38,6 +38,9 @@ export class ChatMessage {
   })
   type: TypeMessage;
 
+  @Column({ nullable: true })
+  fileName?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

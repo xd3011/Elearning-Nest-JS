@@ -32,6 +32,9 @@ export class SubPost {
   })
   type: TypeMessage;
 
+  @Column({ nullable: true })
+  fileName?: string;
+
   @ManyToOne(() => SubPost, { nullable: true })
   @JoinColumn({ name: 'reply' })
   reply?: SubPost;
