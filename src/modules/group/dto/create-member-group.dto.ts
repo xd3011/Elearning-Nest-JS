@@ -7,3 +7,8 @@ export class AddMemberDto {
   @IsNumber()
   memberId: number;
 }
+
+export class MemberJoinGroup {
+  @IsString()
+  codeJoin: string;
+}

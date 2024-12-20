@@ -5,7 +5,7 @@ import { GroupMember, Status } from '../entities/groupMember.entity';
 import { IUser } from '@modules/user/interface/user.interface';
 import { GroupService } from './group.service';
 import { UserService } from '@modules/user/user.service';
-import { AddMemberDto } from '../dto/create-member-group.dto';
+import { AddMemberDto, MemberJoinGroup } from '../dto/create-member-group.dto';
 
 @Injectable()
 export class GroupMemberService {
@@ -86,21 +86,19 @@ export class GroupMemberService {
     return groupMember;
   }
 
-  async memberJoinGroup(groupId: number, codeJoin: string, user: IUser) {
-    const group = await this.groupService.findOne(groupId, user);
-    if (group.codeJoin !== codeJoin) {
-      throw new Error('Code join is not correct');
-    }
-    if (group.members.some((member) => member.id === user.id)) {
+  async memberJoinGroup(memberJoinGroup: MemberJoinGroup, user: IUser) {
+    const group = await this.groupService.findOneByCodeJoin(
+      memberJoinGroup.codeJoin,
+    );
+    if (group.members.some((member) => member.user.id === user.id)) {
       throw new Error('User is already a member of this group');
     }
-    const newGroupMember = await this.groupMemberRepository.save({
+    return await this.groupMemberRepository.save({
       user: { id: user.id },
-      group: { id: groupId },
+      group: { id: group.id },
       role: 2,
       status: Status.ACTIVE,
       createdBy: { id: user.id },
     });
-    return newGroupMember;
   }
 }

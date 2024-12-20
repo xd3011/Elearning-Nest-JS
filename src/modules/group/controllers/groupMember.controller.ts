@@ -12,7 +12,7 @@ import { User } from '@src/decorator/user.decorator';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
 import { PaginationParams } from '@src/utils/types/paginationParams';
 import { GroupMemberService } from '../services/groupMember.service';
-import { AddMemberDto } from '../dto/create-member-group.dto';
+import { AddMemberDto, MemberJoinGroup } from '../dto/create-member-group.dto';
 
 @Controller('group-member')
 export class GroupMemberController {
@@ -33,5 +33,12 @@ export class GroupMemberController {
   @ResponseMessage('Add member successfully')
   addMember(@Body() addMemberDto: AddMemberDto, @User() user: IUser) {
     return this.groupMemberService.addMember(addMemberDto, user);
+  }
+
+  @Post('invite')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Invite member successfully')
+  inviteMember(@Body() memberJoinGroup: MemberJoinGroup, @User() user: IUser) {
+    return this.groupMemberService.memberJoinGroup(memberJoinGroup, user);
   }
 }

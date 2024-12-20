@@ -9,6 +9,7 @@ import { IUser } from '@modules/user/interface/user.interface';
 import { UserService } from '@modules/user/user.service';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
+import { generateCodeJoin } from '@shared/generate-code-join';
 
 @Injectable()
 export class GroupService {
@@ -20,22 +21,23 @@ export class GroupService {
     private dataSource: DataSource,
   ) {}
 
-  generateCodeJoin() {
-    let codeJoin = '';
-    const chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 8; i++) {
-      codeJoin += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return codeJoin;
-  }
   async create(createGroupDto: CreateGroupDto, user: IUser) {
     const { id: userId } = user;
     try {
+      let codeJoin = generateCodeJoin();
+      while (1) {
+        const group = await this.groupRepository.findOne({
+          where: { codeJoin },
+        });
+        if (!group) {
+          break;
+        }
+        codeJoin = generateCodeJoin();
+      }
       return await this.dataSource.transaction(async (manager) => {
         const group = await manager.save(Group, {
           ...createGroupDto,
-          codeJoin: this.generateCodeJoin(),
+          codeJoin: codeJoin,
         });
         const member = await manager.save(GroupMember, {
           group: group,
@@ -119,7 +121,36 @@ export class GroupService {
         'User is not a member of the group',
       );
     }
+    return group;
+  }
 
+  async findOneByCodeJoin(codeJoin: string) {
+    const group = await this.groupRepository.findOne({
+      where: { codeJoin },
+      relations: ['members', 'members.user'],
+      select: {
+        id: true,
+        name: true,
+        members: {
+          id: true,
+          user: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!group) {
+      throw new CBadRequestException(
+        GroupService.name,
+        'Group not found',
+        ApiResponseCode.GROUP_CODE_JOIN_NOT_FOUND,
+        'Group with the provided codeJoin not found',
+      );
+    }
     return group;
   }
 
