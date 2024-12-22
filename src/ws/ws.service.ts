@@ -67,6 +67,11 @@ export class WSService {
     await this.cacheManager.set(cacheKey, cacheData);
   }
 
+  async clearUserInMetting(groupId: number) {
+    const cacheKey = `/meeting/${groupId}`;
+    await this.cacheManager.del(cacheKey);
+  }
+
   async getUsersInMetting(groupId: number) {
     const cacheKey = `/meeting/${groupId}`;
     let cacheData = await this.cacheManager.get<{ userIds: number[] }>(

@@ -30,3 +30,11 @@ export class CreatePostDto {
   @ValidateIf((o) => ['IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT'].includes(o.type))
   fileName?: string;
 }
+
+export class EndMeeting {
+  @IsNumber()
+  groupId: number;
+
+  @IsNumber()
+  postId: number;
+}

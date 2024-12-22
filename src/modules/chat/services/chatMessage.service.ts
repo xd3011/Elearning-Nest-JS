@@ -169,6 +169,12 @@ export class ChatMessageService {
     );
   }
 
+  async updateTimeEndCalling(id: number) {
+    return await this.chatMessageRepository.update(id, {
+      updatedAt: new Date(),
+    });
+  }
+
   async deleteMessage(id: number, user: IUser) {
     const chatMessage = await this.chatMessageRepository.findOne({
       where: {

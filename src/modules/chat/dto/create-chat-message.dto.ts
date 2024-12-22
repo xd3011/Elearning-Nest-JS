@@ -26,3 +26,11 @@ export class CreateChatMessageDto {
   @IsNotEmpty()
   type: TypeMessage;
 }
+
+export class LeaveCalling {
+  @IsNumber()
+  chatId: number;
+
+  @IsNumber()
+  chatMessageId: number;
+}

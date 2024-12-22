@@ -150,6 +150,16 @@ export class PostService {
     );
   }
 
+  async updateTimeEndMetting(id: number) {
+    await this.postRepository.update(
+      { id },
+      {
+        updatedAt: new Date(),
+      },
+    );
+    return await this.postRepository.findOne({ where: { id } });
+  }
+
   async remove(id: number) {
     return await this.postRepository.update(id, {
       deletedAt: new Date(),

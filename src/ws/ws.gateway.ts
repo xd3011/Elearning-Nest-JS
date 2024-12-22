@@ -12,10 +12,13 @@ import {
 import { User } from '@src/decorator/user.decorator';
 import { Server, Socket } from 'socket.io';
 import { WSService } from './ws.service';
-import { CreateChatMessageDto } from '@modules/chat/dto/create-chat-message.dto';
+import {
+  CreateChatMessageDto,
+  LeaveCalling,
+} from '@modules/chat/dto/create-chat-message.dto';
 import { ChatMessageService } from '@modules/chat/services/chatMessage.service';
 import { ChatService } from '@modules/chat/services/chat.service';
-import { CreatePostDto } from '@modules/post/dto/create-post.dto';
+import { CreatePostDto, EndMeeting } from '@modules/post/dto/create-post.dto';
 import { PostService } from '@modules/post/services/post.service';
 import { CreateSubPostDto } from '@modules/post/dto/create-sub-post.dto';
 import { SubPostService } from '@modules/post/services/subPost.service';
@@ -196,20 +199,52 @@ export class WsGateway {
     );
   }
 
-  // @SubscribeMessage('/calling/leave')
-  // async handleCallingLeave(
-  //   @ConnectedSocket() socket: Socket,
-  //   @MessageBody('chatId') chatId: number,
-  //   @User() user: IUser,
-  // ) {
-  //   const getUserByChat = await this.chatService.getUserMessage(chatId, user);
-  //   const getClientIds = await this.wsService.getClientIds(getUserByChat);
-  //   if (getClientIds.clientIds.length > 0) {
-  //     getClientIds.clientIds.forEach((clientId) => {
-  //       this.server.to(clientId).emit('/calling-leave', { chatId });
-  //     });
-  //   }
-  // }
+  @SubscribeMessage('/calling/leave')
+  async handleCallingLeave(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() leaveCalling: LeaveCalling,
+    @User() user: IUser,
+  ) {
+    await this.chatMessageService.findOne(leaveCalling.chatMessageId, user);
+    const chatMessage = await this.chatMessageService.updateTimeEndCalling(
+      leaveCalling.chatMessageId,
+    );
+    this.server.to(socket.id).emit('/calling-leave-receiver', { chatMessage });
+    const getUserByChat = await this.chatService.getUserMessage(
+      leaveCalling.chatId,
+      user,
+    );
+    const getClientIds = await this.wsService.getClientIds(getUserByChat);
+    if (getClientIds.clientIds.length > 0) {
+      getClientIds.clientIds.forEach((clientId) => {
+        this.server.to(clientId).emit('/calling-leave', { chatMessage });
+      });
+    }
+  }
+
+  @SubscribeMessage('/metting/end')
+  async handleMettingEnd(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() endMeeting: EndMeeting,
+    @User() user: IUser,
+  ) {
+    await this.postService.findOne(endMeeting.groupId, user);
+    const post = await this.postService.updateTimeEndMetting(
+      endMeeting.groupId,
+    );
+    await this.wsService.clearUserInMetting(endMeeting.groupId);
+    socket.broadcast.to(`/metting/${endMeeting.groupId}`).emit('/metting/end', {
+      post,
+    });
+    const socketsInRoom = await this.getSocketsInRoom(
+      `/metting/${endMeeting.groupId}`,
+    );
+    socketsInRoom.forEach((socket) => {
+      this.server.sockets.sockets
+        .get(socket.id)
+        ?.leave(`/metting/${endMeeting.groupId}`);
+    });
+  }
 
   @SubscribeMessage('/metting/leave')
   async handleMettingLeave(
@@ -242,7 +277,6 @@ export class WsGateway {
 
   @SubscribeMessage('/metting/offer')
   async handleMettingOffer(
-    @ConnectedSocket() socket: Socket,
     @MessageBody() payload: { offer: any; groupId: number; userId: number },
     @User() user: IUser,
   ) {
@@ -251,7 +285,6 @@ export class WsGateway {
 
   @SubscribeMessage('/metting/answer')
   async handleMettingAnswer(
-    @ConnectedSocket() socket: Socket,
     @MessageBody() payload: { answer: any; groupId: number; userId: number },
     @User() user: IUser,
   ) {
@@ -260,7 +293,6 @@ export class WsGateway {
 
   @SubscribeMessage('/metting/ice-candidate')
   async handleMettingIceCandidate(
-    @ConnectedSocket() socket: Socket,
     @MessageBody() payload: { candidate: any; groupId: number; userId: number },
     @User() user: IUser,
   ) {
