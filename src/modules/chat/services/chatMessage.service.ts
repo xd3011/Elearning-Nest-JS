@@ -121,7 +121,7 @@ export class ChatMessageService {
   async findOne(id: number, user: IUser) {
     const query = this.chatMessageRepository
       .createQueryBuilder('chatMessage')
-      .innerJoinAndSelect('chatMessage.replyMessage', 'replyMessage')
+      .leftJoinAndSelect('chatMessage.replyMessage', 'replyMessage')
       .innerJoinAndSelect('chatMessage.chat', 'chat')
       .innerJoinAndSelect('chatMessage.user', 'user')
       .select([
@@ -170,9 +170,10 @@ export class ChatMessageService {
   }
 
   async updateTimeEndCalling(id: number) {
-    return await this.chatMessageRepository.update(id, {
+    await this.chatMessageRepository.update(id, {
       updatedAt: new Date(),
     });
+    return await this.chatMessageRepository.findOne({ where: { id } });
   }
 
   async deleteMessage(id: number, user: IUser) {

@@ -9,5 +9,6 @@ import { PostModule } from '@modules/post/post.module';
   imports: [AuthModule, ChatModule, PostModule],
   controllers: [],
   providers: [WsGateway, WSService],
+  exports: [WSService],
 })
 export class WSModule {}

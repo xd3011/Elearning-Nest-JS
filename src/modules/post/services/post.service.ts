@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { IUser } from '@modules/user/interface/user.interface';
@@ -9,6 +10,11 @@ import { GroupService } from '@modules/group/services/group.service';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { GroupMemberService } from '@modules/group/services/groupMember.service';
+import { ScheduleService } from '@modules/schedule/schedule.service';
+import { TypeMessage } from '@shared/constants/message-type.constant';
+import { User } from '@modules/user/entities/user.entity';
+import { WSService } from '@src/ws/ws.service';
+import { CLogger } from '@src/logger/custom-loger';
 
 @Injectable()
 export class PostService {
@@ -17,8 +23,10 @@ export class PostService {
     private readonly postRepository: Repository<Post>,
     private readonly groupService: GroupService,
     private readonly groupMemberService: GroupMemberService,
+    private readonly scheduleService: ScheduleService,
+    private readonly wsService: WSService,
   ) {}
-  async create(createPostDto: CreatePostDto, user: IUser) {
+  async create(createPostDto: CreatePostDto, user: IUser | User) {
     // Check group exists and user is member
     await this.groupService.findOne(createPostDto.groupId, user);
     return await this.postRepository.save({
@@ -164,5 +172,44 @@ export class PostService {
     return await this.postRepository.update(id, {
       deletedAt: new Date(),
     });
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async getAllScheduleMeeting() {
+    try {
+      const schedules = await this.scheduleService.findAllSchedule();
+      const currentTime = new Date().getTime();
+
+      await Promise.all(
+        schedules.map(async (schedule) => {
+          const startTime = new Date(schedule.startTime).getTime();
+          const delay = startTime - currentTime;
+
+          return new Promise((resolve) => {
+            setTimeout(async () => {
+              try {
+                const post = await this.create(
+                  {
+                    title: schedule.title,
+                    message: schedule.message,
+                    type: TypeMessage.MEETING,
+                    groupId: schedule.group.id,
+                  },
+                  schedule.user,
+                );
+                await this.wsService.handleSendPost(post, schedule.group.id);
+                resolve(true);
+              } catch (error) {
+                CLogger.log('Failed to create post:', error);
+                resolve(false);
+              }
+            }, delay);
+          });
+        }),
+      );
+    } catch (error) {
+      CLogger.log('Failed to create post:', error);
+      throw error;
+    }
   }
 }

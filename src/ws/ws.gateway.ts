@@ -22,6 +22,7 @@ import { CreatePostDto, EndMeeting } from '@modules/post/dto/create-post.dto';
 import { PostService } from '@modules/post/services/post.service';
 import { CreateSubPostDto } from '@modules/post/dto/create-sub-post.dto';
 import { SubPostService } from '@modules/post/services/subPost.service';
+import { Post } from '@modules/post/entities/post.entity';
 
 export interface CustomSocket extends Socket {
   user: IUser;
@@ -98,6 +99,10 @@ export class WsGateway {
   ) {
     const post = await this.postService.create(postDto, user);
     this.server.to(`/group/${postDto.groupId}`).emit(`/group/post`, post);
+  }
+
+  async handleSendPost(post: Post, groupId: number) {
+    this.server.to(`/group/${groupId}`).emit(`/group/post`, post);
   }
 
   @SubscribeMessage('/sub-post')

@@ -10,6 +10,7 @@ import { UserService } from '@modules/user/user.service';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { generateCodeJoin } from '@shared/generate-code-join';
+import { User } from '@modules/user/entities/user.entity';
 
 @Injectable()
 export class GroupService {
@@ -93,7 +94,7 @@ export class GroupService {
     }
   }
 
-  async findOne(id: number, user: IUser) {
+  async findOne(id: number, user: IUser | User) {
     const query = this.groupRepository
       .createQueryBuilder('group')
       .innerJoinAndSelect('group.members', 'groupMember')
