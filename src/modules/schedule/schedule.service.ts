@@ -158,6 +158,35 @@ export class ScheduleService {
     return schedules;
   }
 
+  async findAllScheduleAfterOneHour() {
+    const currentTime = new Date();
+    const oneHourLater = new Date(currentTime.getTime() + 60 * 60 * 1000);
+    const twoHoursLater = new Date(currentTime.getTime() + 2 * 60 * 60 * 1000);
+
+    const schedules = await this.scheduleRepository
+      .createQueryBuilder('schedule')
+      .innerJoinAndSelect('schedule.group', 'group')
+      .innerJoinAndSelect('schedule.user', 'user')
+      .innerJoinAndSelect('group.members', 'groupMember')
+      .innerJoinAndSelect('groupMember.user', 'memberUser')
+      .select([
+        'schedule',
+        'group.id',
+        'group.name',
+        'groupMember',
+        'memberUser.id',
+        'memberUser.email',
+        'memberUser.firstName',
+        'memberUser.lastName',
+      ])
+      .where('schedule.startTime > :oneHourLater', { oneHourLater })
+      .andWhere('schedule.startTime <= :twoHoursLater', { twoHoursLater })
+      .orderBy('schedule.startTime', 'ASC')
+      .getMany();
+
+    return schedules;
+  }
+
   async findAll(
     groupId: number,
     user: IUser,

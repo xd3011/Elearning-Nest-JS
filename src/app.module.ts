@@ -16,13 +16,16 @@ import typeormConfig from './config/typeorm.config';
 import { WSModule } from './ws/ws.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { PostModule } from './modules/post/post.module';
-import { ScheduleModule } from './modules/schedule/schedule.module';
+import { ScheduleModule as ScheduleCustomModule } from './modules/schedule/schedule.module';
+import { EmailModule } from '@modules/email/email.module';
+import emailConfig from './config/email.config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, authConfig, dbConfig, typeormConfig],
+      load: [appConfig, authConfig, dbConfig, typeormConfig, emailConfig],
       envFilePath: ['.env', '.env.development', '.env.production'],
     }),
     DatabaseModule,
@@ -35,7 +38,9 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
     WSModule,
     CacheModule.register({ isGlobal: true, ttl: 0 }),
     PostModule,
-    ScheduleModule,
+    ScheduleModule.forRoot(),
+    ScheduleCustomModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

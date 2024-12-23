@@ -15,6 +15,7 @@ import { TypeMessage } from '@shared/constants/message-type.constant';
 import { User } from '@modules/user/entities/user.entity';
 import { WSService } from '@src/ws/ws.service';
 import { CLogger } from '@src/logger/custom-loger';
+import { EmailService } from '@modules/email/email.service';
 
 @Injectable()
 export class PostService {
@@ -25,6 +26,7 @@ export class PostService {
     private readonly groupMemberService: GroupMemberService,
     private readonly scheduleService: ScheduleService,
     private readonly wsService: WSService,
+    private readonly emailService: EmailService,
   ) {}
   async create(createPostDto: CreatePostDto, user: IUser | User) {
     // Check group exists and user is member
@@ -175,7 +177,7 @@ export class PostService {
   }
 
   @Cron(CronExpression.EVERY_HOUR)
-  async getAllScheduleMeeting() {
+  async createAllScheduleMeeting() {
     try {
       const schedules = await this.scheduleService.findAllSchedule();
       const currentTime = new Date().getTime();
@@ -209,6 +211,21 @@ export class PostService {
       );
     } catch (error) {
       CLogger.log('Failed to create post:', error);
+      throw error;
+    }
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  async sendNotificationAllScheduleMeeting() {
+    try {
+      const schedules =
+        await this.scheduleService.findAllScheduleAfterOneHour();
+      schedules.forEach(async (schedule) => {
+        // await this.sendNotification(schedule);
+        await this.emailService.handleSendScheduleToEmail(schedule);
+      });
+    } catch (error) {
+      CLogger.log('Failed to send notification:', error);
       throw error;
     }
   }

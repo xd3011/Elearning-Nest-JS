@@ -9,12 +9,14 @@ import { SubPostService } from './services/subPost.service';
 import { SubPost } from './entities/subPost.entity';
 import { ScheduleModule } from '@modules/schedule/schedule.module';
 import { WSModule } from '@src/ws/ws.module';
+import { EmailModule } from '@modules/email/email.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Post, SubPost]),
     GroupModule,
     ScheduleModule,
+    EmailModule,
     forwardRef(() => WSModule),
   ],
   controllers: [PostController, SubPostController],
