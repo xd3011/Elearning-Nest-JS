@@ -215,13 +215,12 @@ export class PostService {
     }
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_HOUR)
   async sendNotificationAllScheduleMeeting() {
     try {
       const schedules =
         await this.scheduleService.findAllScheduleAfterOneHour();
       schedules.forEach(async (schedule) => {
-        // await this.sendNotification(schedule);
         await this.emailService.handleSendScheduleToEmail(schedule);
       });
     } catch (error) {
