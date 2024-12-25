@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <title>Thông Báo Cuộc Họp</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 0;
+      background-color: #f9f9f9; } .email-container { max-width: 600px; margin:
+      20px auto; background: #ffffff; border: 1px solid #ddd; border-radius:
+      8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+      .email-header { background-color: #f0f5f9; padding: 20px; text-align:
+      center; } .email-header img { max-width: 120px; } .email-body { padding:
+      20px; color: #333333; } .email-body h1 { color: #007b55; font-size: 20px;
+      margin: 0 0 15px; } .email-body p { font-size: 14px; line-height: 1.6;
+      margin: 10px 0; } .meeting-details { font-size: 16px; color: #333; margin:
+      20px 0; padding: 10px; border: 1px dashed #007b55; background: #f9fdf9; }
+      .email-footer { font-size: 12px; color: #777; text-align: center; padding:
+      15px 20px; background: #f0f5f9; }
+    </style>
+  </head>
+  <body>
+    <div class='email-container'>
+      <div class='email-header'>
+        <img src='https://via.placeholder.com/120x40?text=Logo' alt='XD Logo' />
+      </div>
+      <div class='email-body'>
+        <h1>Thông Báo Cuộc Họp</h1>
+        <p>Thân gửi {{recipientName}},</p>
+        <p>Chúng tôi xin thông báo về cuộc họp sắp tới được lên lịch như sau:</p>
+        <div class='meeting-details'>
+          <p><strong>Tên Nhóm:</strong> {{groupName}}</p>
+          <p><strong>Ngày:</strong> {{date}}</p>
+          <p><strong>Giờ:</strong> {{time}}</p>
+        </div>
+        <p>Vui lòng đảm bảo có mặt đúng giờ và chuẩn bị cho cuộc họp.</p>
+        <p>Trân trọng,</p>
+        <p>{{senderName}}</p>
+      </div>
+      <div class='email-footer'>
+        &copy; 2024 XD. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>
