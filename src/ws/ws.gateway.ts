@@ -49,6 +49,9 @@ export class WsGateway {
       return this.server.to(client.id).emit('error', 'Unauthorized');
     }
     const payload = await this.authService.verifyToken(authToken);
+    if (!payload) {
+      return this.server.to(client.id).emit('error', 'Unauthorized');
+    }
     const { id }: IUser = payload;
     await this.wsService.cacheClientId(client.id, id);
   }
@@ -59,6 +62,9 @@ export class WsGateway {
       return this.server.to(client.id).emit('error', 'Unauthorized');
     }
     const payload = await this.authService.verifyToken(authToken);
+    if (!payload) {
+      return this.server.to(client.id).emit('error', 'Unauthorized');
+    }
     const { id }: IUser = payload;
     await this.wsService.removeClientId(client.id, id);
   }

@@ -14,6 +14,7 @@ import { TokenService } from './token.service';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { RoleService } from '@modules/role/role.service';
 import { Role } from '@modules/role/entities/role.entity';
+import { CLogger } from '@src/logger/custom-loger';
 
 @Injectable()
 export class AuthService {
@@ -78,10 +79,15 @@ export class AuthService {
   }
 
   async verifyToken(token: string) {
-    const payload = await this.jwtService.verifyAsync(token, {
-      secret: this.configService.get('auth').jwtSecret,
-    });
-    return payload;
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get('auth').jwtSecret,
+      });
+      return payload;
+    } catch (error) {
+      CLogger.log(`Token verification failed: ${error.message}`);
+      return null;
+    }
   }
 
   async refreshToken(req: Request, res: Response) {
