@@ -7,6 +7,7 @@ import { NestApplicationOptions, VersioningType } from '@nestjs/common';
 import { GlobalExceptionsFilter } from './filters/global-exception.filter';
 import * as cookieParser from 'cookie-parser';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const options: NestApplicationOptions = {
@@ -27,6 +28,17 @@ async function bootstrap() {
     type: VersioningType.URI,
     defaultVersion: ['1'],
   });
+
+  const document = SwaggerModule.createDocument(
+    app,
+    new DocumentBuilder()
+      .setTitle('NestJS Chat App')
+      .setDescription('Api documents for NestJS Chat App')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build(),
+  );
+  SwaggerModule.setup(apiPrefix, app, document);
   await app.listen(port, host, () => {
     CLogger.log(`Server is running on ${host}:${port}`, 'Bootstrap');
   });

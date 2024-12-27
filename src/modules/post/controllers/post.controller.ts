@@ -17,8 +17,10 @@ import { IUser } from '@modules/user/interface/user.interface';
 import { PaginationParams } from '@src/utils/types/paginationParams';
 import { ResponseMessage } from '@src/decorator/message.decorator';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('post')
+@ApiTags('Post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 

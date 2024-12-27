@@ -15,8 +15,10 @@ import { User } from '@src/decorator/user.decorator';
 import { IUser } from '@modules/user/interface/user.interface';
 import { ResponseMessage } from '@src/decorator/message.decorator';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('permission')
+@ApiTags('Permission')
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 

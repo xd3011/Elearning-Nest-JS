@@ -17,8 +17,10 @@ import { PaginationParams } from '@src/utils/types/paginationParams';
 import { UpdateSubPostDto } from '../dto/update-sub-post.dto';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
 import { ResponseMessage } from '@src/decorator/message.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('sub-post')
+@ApiTags('Sub Post')
 export class SubPostController {
   constructor(private readonly subPostService: SubPostService) {}
 

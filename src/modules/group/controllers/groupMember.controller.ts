@@ -13,8 +13,10 @@ import { TransformResponseInterceptor } from '@src/interceptors/transform-respon
 import { PaginationParams } from '@src/utils/types/paginationParams';
 import { GroupMemberService } from '../services/groupMember.service';
 import { AddMemberDto, MemberJoinGroup } from '../dto/create-member-group.dto';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('group-member')
+@ApiTags('Group Member')
 export class GroupMemberController {
   constructor(private readonly groupMemberService: GroupMemberService) {}
   @Get()

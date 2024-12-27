@@ -17,8 +17,10 @@ import { Response } from 'express';
 import { IsPublic } from '@src/decorator/is-public.decorator';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
 import { ResponseMessage } from '@src/decorator/message.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('auth')
+@ApiTags('Auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
