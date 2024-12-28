@@ -17,10 +17,11 @@ import { User } from '@src/decorator/user.decorator';
 import { PaginationParams } from '@src/utils/types/paginationParams';
 import { ResponseMessage } from '@src/decorator/message.decorator';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('group')
 @ApiTags('Group')
+@ApiBearerAuth()
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 

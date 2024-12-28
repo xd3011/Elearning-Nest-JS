@@ -14,10 +14,11 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { User } from '@src/decorator/user.decorator';
 import { IUser } from '@modules/user/interface/user.interface';
 import { PaginationParams } from '@src/utils/types/paginationParams';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('schedule')
 @ApiTags('Schedule')
+@ApiBearerAuth()
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 

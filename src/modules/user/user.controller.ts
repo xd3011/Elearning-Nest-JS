@@ -17,10 +17,11 @@ import { TransformResponseInterceptor } from '@src/interceptors/transform-respon
 import { ResponseMessage } from '@src/decorator/message.decorator';
 import { User } from '@src/decorator/user.decorator';
 import { IUser } from './interface/user.interface';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('user')
 @ApiTags('User')
+@ApiBearerAuth()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

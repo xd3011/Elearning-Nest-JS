@@ -15,10 +15,11 @@ import { User } from '@src/decorator/user.decorator';
 import { IUser } from '@modules/user/interface/user.interface';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
 import { ResponseMessage } from '@src/decorator/message.decorator';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('chat')
 @ApiTags('Chat')
+@ApiBearerAuth()
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 

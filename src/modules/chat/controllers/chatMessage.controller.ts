@@ -17,10 +17,11 @@ import { PaginationParams } from '@src/utils/types/paginationParams';
 import { UpdateChatMessageDto } from '../dto/update-chat-message.dto';
 import { ResponseMessage } from '@src/decorator/message.decorator';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('chat-message')
 @ApiTags('Chat Message')
+@ApiBearerAuth()
 export class ChatMessageController {
   constructor(private readonly chatMessageService: ChatMessageService) {}
 
