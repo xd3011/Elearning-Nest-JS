@@ -8,6 +8,7 @@ import { Schedule } from './entities/schedule.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
+import { EmailService } from '@modules/email/email.service';
 
 @Injectable()
 export class ScheduleService {
@@ -16,6 +17,7 @@ export class ScheduleService {
     private readonly scheduleRepository: Repository<Schedule>,
     private readonly groupService: GroupService,
     private readonly dataSource: DataSource,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(createScheduleDto: CreateScheduleDto, user: IUser) {
@@ -31,15 +33,19 @@ export class ScheduleService {
       );
     }
 
-    if (!createScheduleDto.recurrence) {
-      return await this.scheduleRepository.save({
+    const createSingleSchedule = async () => {
+      const schedule = await this.scheduleRepository.save({
         title: createScheduleDto.title,
         message: createScheduleDto.message,
         startTime,
         user: { id: user.id, email: user.email },
         group: { id: createScheduleDto.groupId },
       });
-    } else {
+      this.checkTimeCreateNotificationForSchedule(startTime, schedule);
+      return schedule;
+    };
+
+    const createRecurringSchedules = async () => {
       const endTime = new Date(createScheduleDto.endTime);
       if (endTime < startTime) {
         throw new CBadRequestException(
@@ -67,7 +73,7 @@ export class ScheduleService {
         );
       }
 
-      return await this.dataSource.transaction(async (manager) => {
+      const schedules = await this.dataSource.transaction(async (manager) => {
         const schedules: Schedule[] = [];
         let currentTime = new Date(createScheduleDto.startTime);
 
@@ -84,7 +90,15 @@ export class ScheduleService {
         }
         return schedules;
       });
-    }
+
+      this.checkTimeCreateNotificationForSchedule(startTime, schedules[0]);
+
+      return schedules;
+    };
+
+    return createScheduleDto.recurrence
+      ? createRecurringSchedules()
+      : createSingleSchedule();
   }
 
   async getAllSchedulesForUser(user: IUser) {
@@ -262,7 +276,8 @@ export class ScheduleService {
         'You do not have permission to update this schedule',
       );
     }
-    if (updateScheduleDto.startTime < new Date()) {
+    const startTime = new Date(updateScheduleDto.startTime);
+    if (startTime < new Date()) {
       throw new CBadRequestException(
         ScheduleService.name,
         'Cannot update a schedule that has passed',
@@ -273,7 +288,7 @@ export class ScheduleService {
     const newSchedule = await this.scheduleRepository.findOne({
       where: {
         group: { id: schedule.group.id },
-        startTime: updateScheduleDto.startTime,
+        startTime: startTime,
       },
     });
     if (newSchedule) {
@@ -284,11 +299,29 @@ export class ScheduleService {
         'Cannot update a schedule that has the same time with another schedule',
       );
     }
-    return await this.scheduleRepository.update(id, {
+    await this.scheduleRepository.update(id, {
       message: updateScheduleDto.message,
       title: updateScheduleDto.title,
-      startTime: updateScheduleDto.startTime,
+      startTime: startTime,
     });
+
+    const updatedSchedule = await this.findOne(id, user);
+    this.checkTimeCreateNotificationForSchedule(startTime, updatedSchedule);
+    return updatedSchedule;
+  }
+
+  async checkTimeCreateNotificationForSchedule(
+    startTime: Date,
+    schedule: Schedule,
+  ) {
+    const now = new Date();
+    const result = new Date(
+      Math.floor(now.getTime() / (60 * 60 * 1000)) * (60 * 60 * 1000) +
+        2 * 60 * 60 * 1000,
+    );
+    if (startTime < result) {
+      await this.emailService.handleSendScheduleToEmail(schedule);
+    }
   }
 
   async remove(id: number, user: IUser) {
