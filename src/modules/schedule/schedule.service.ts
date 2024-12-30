@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { GroupService } from '@modules/group/services/group.service';
@@ -9,6 +9,8 @@ import { DataSource, Repository } from 'typeorm';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { EmailService } from '@modules/email/email.service';
+import { PostService } from '@modules/post/services/post.service';
+import { TypeMessage } from '@shared/constants/message-type.constant';
 
 @Injectable()
 export class ScheduleService {
@@ -18,6 +20,8 @@ export class ScheduleService {
     private readonly groupService: GroupService,
     private readonly dataSource: DataSource,
     private readonly emailService: EmailService,
+    @Inject(forwardRef(() => PostService))
+    private readonly postService: PostService,
   ) {}
 
   async create(createScheduleDto: CreateScheduleDto, user: IUser) {
@@ -34,15 +38,16 @@ export class ScheduleService {
     }
 
     const createSingleSchedule = async () => {
-      const schedule = await this.scheduleRepository.save({
+      const newSchedule = await this.scheduleRepository.save({
         title: createScheduleDto.title,
         message: createScheduleDto.message,
         startTime,
         user: { id: user.id, email: user.email },
         group: { id: createScheduleDto.groupId },
       });
+      const schedule = await this.findOne(newSchedule.id, user);
       this.checkTimeCreateNotificationForSchedule(startTime, schedule);
-      return schedule;
+      return newSchedule;
     };
 
     const createRecurringSchedules = async () => {
@@ -91,7 +96,9 @@ export class ScheduleService {
         return schedules;
       });
 
-      this.checkTimeCreateNotificationForSchedule(startTime, schedules[0]);
+      const schedule = await this.findOne(schedules[0].id, user);
+
+      this.checkTimeCreateNotificationForSchedule(startTime, schedule);
 
       return schedules;
     };
@@ -242,6 +249,8 @@ export class ScheduleService {
     const schedule = await this.scheduleRepository
       .createQueryBuilder('schedule')
       .innerJoinAndSelect('schedule.group', 'group')
+      .innerJoinAndSelect('group.members', 'groupMember')
+      .innerJoinAndSelect('groupMember.user', 'memberUser')
       .innerJoinAndSelect('schedule.user', 'user')
       .select(['schedule'])
       .addSelect([
@@ -251,6 +260,11 @@ export class ScheduleService {
         'user.email',
         'user.firstName',
         'user.lastName',
+        'groupMember',
+        'memberUser.id',
+        'memberUser.email',
+        'memberUser.firstName',
+        'memberUser.lastName',
       ])
       .where('schedule.id = :id', { id })
       .getOne();
@@ -315,11 +329,20 @@ export class ScheduleService {
     schedule: Schedule,
   ) {
     const now = new Date();
-    const result = new Date(
+    const timeCheckHour = new Date(
       Math.floor(now.getTime() / (60 * 60 * 1000)) * (60 * 60 * 1000) +
         2 * 60 * 60 * 1000,
     );
-    if (startTime < result) {
+
+    const timeCheckTwoHour = new Date(
+      Math.floor(now.getTime() / (60 * 60 * 1000)) * (60 * 60 * 1000) +
+        1 * 60 * 60 * 1000,
+    );
+
+    if (startTime < timeCheckHour) {
+      await this.postService.createMeeting(schedule);
+    }
+    if (startTime < timeCheckTwoHour) {
       await this.emailService.handleSendScheduleToEmail(schedule);
     }
   }

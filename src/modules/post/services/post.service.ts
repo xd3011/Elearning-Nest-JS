@@ -16,6 +16,7 @@ import { User } from '@modules/user/entities/user.entity';
 import { WSService } from '@src/ws/ws.service';
 import { CLogger } from '@src/logger/custom-loger';
 import { EmailService } from '@modules/email/email.service';
+import { Schedule } from '@modules/schedule/entities/schedule.entity';
 
 @Injectable()
 export class PostService {
@@ -174,6 +175,28 @@ export class PostService {
     return await this.postRepository.update(id, {
       deletedAt: new Date(),
     });
+  }
+
+  async createMeeting(schedule: Schedule) {
+    const currentTime = new Date().getTime();
+    const startTime = new Date(schedule.startTime).getTime();
+    const delay = startTime - currentTime;
+    setTimeout(async () => {
+      try {
+        const post = await this.create(
+          {
+            title: schedule.title,
+            message: schedule.message,
+            type: TypeMessage.MEETING,
+            groupId: schedule.group.id,
+          },
+          schedule.user,
+        );
+        await this.wsService.handleSendPost(post, schedule.group.id);
+      } catch (error) {
+        CLogger.log('Failed to create post:', error);
+      }
+    }, delay);
   }
 
   @Cron(CronExpression.EVERY_HOUR)
