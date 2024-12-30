@@ -242,6 +242,9 @@ export class WsGateway {
     await this.postService.findOne(endMeeting.postId, user);
     const post = await this.postService.updateTimeEndMetting(endMeeting.postId);
     await this.wsService.clearUserInMetting(endMeeting.groupId);
+    this.server.to(socket.id).emit('/metting/end', {
+      post,
+    });
     socket.broadcast.to(`/metting/${endMeeting.groupId}`).emit('/metting/end', {
       post,
     });
