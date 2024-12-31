@@ -170,6 +170,10 @@ export class ScheduleService {
         'memberUser.email',
         'memberUser.firstName',
         'memberUser.lastName',
+        'user.id',
+        'user.email',
+        'user.firstName',
+        'user.lastName',
       ])
       .where('schedule.startTime > :currentTime', { currentTime })
       .andWhere('schedule.startTime <= :oneHourLater', { oneHourLater })
