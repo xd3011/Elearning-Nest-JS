@@ -12,6 +12,8 @@ import * as bcrypt from 'bcrypt';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { RoleService } from '@modules/role/role.service';
+import { IUser } from './interface/user.interface';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class UserService {
@@ -229,6 +231,32 @@ export class UserService {
     return await this.usersRepository.update(id, {
       deletedAt: new Date(),
       deletedBy: userDelete,
+    });
+  }
+
+  async changePassword(user: IUser, changePasswordDto: ChangePasswordDto) {
+    const { oldPassword, newPassword } = changePasswordDto;
+    const getUser = await this.findOneByUsername(user.email);
+    if (!getUser) {
+      throw new CBadRequestException(
+        UserService.name,
+        'User not found',
+        ApiResponseCode.USER_NOT_FOUND,
+        'User not found',
+      );
+    }
+    if (!this.isValidPassword(oldPassword, getUser.password)) {
+      throw new CBadRequestException(
+        UserService.name,
+        'Old password is incorrect',
+        ApiResponseCode.PASSWORD_INCORRECT,
+        'Old password is incorrect',
+      );
+    }
+    const password = await this.hashPassword(newPassword);
+    return await this.usersRepository.update(user.id, {
+      password,
+      updatedAt: new Date(),
     });
   }
 }

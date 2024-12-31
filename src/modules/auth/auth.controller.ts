@@ -18,6 +18,7 @@ import { IsPublic } from '@src/decorator/is-public.decorator';
 import { TransformResponseInterceptor } from '@src/interceptors/transform-response.interceptor';
 import { ResponseMessage } from '@src/decorator/message.decorator';
 import { ApiTags } from '@nestjs/swagger';
+import { ChangePasswordDto } from '@modules/user/dto/change-password.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -46,6 +47,16 @@ export class AuthController {
   @ResponseMessage('Get account successfully')
   async getAccount(@User() user: IUser) {
     return await this.authService.getAccount(user);
+  }
+
+  @Post('/changePassword')
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Change password successfully')
+  async changePassword(
+    @User() user: IUser,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return await this.authService.changePassword(user, changePasswordDto);
   }
 
   @Get('/refreshToken')

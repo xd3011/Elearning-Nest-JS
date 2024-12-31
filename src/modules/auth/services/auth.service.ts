@@ -15,6 +15,7 @@ import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { RoleService } from '@modules/role/role.service';
 import { Role } from '@modules/role/entities/role.entity';
 import { CLogger } from '@src/logger/custom-loger';
+import { ChangePasswordDto } from '@modules/user/dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -154,5 +155,9 @@ export class AuthService {
     await this.tokenService.deleteToken(refreshToken);
     res.clearCookie('refreshToken');
     return;
+  }
+
+  async changePassword(user: IUser, changePasswordDto: ChangePasswordDto) {
+    return await this.userService.changePassword(user, changePasswordDto);
   }
 }
