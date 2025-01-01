@@ -10,7 +10,6 @@ import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { EmailService } from '@modules/email/email.service';
 import { PostService } from '@modules/post/services/post.service';
-import { TypeMessage } from '@shared/constants/message-type.constant';
 
 @Injectable()
 export class ScheduleService {
@@ -335,12 +334,12 @@ export class ScheduleService {
     const now = new Date();
     const timeCheckHour = new Date(
       Math.floor(now.getTime() / (60 * 60 * 1000)) * (60 * 60 * 1000) +
-        2 * 60 * 60 * 1000,
+        1 * 60 * 60 * 1000,
     );
 
     const timeCheckTwoHour = new Date(
       Math.floor(now.getTime() / (60 * 60 * 1000)) * (60 * 60 * 1000) +
-        1 * 60 * 60 * 1000,
+        2 * 60 * 60 * 1000,
     );
 
     if (startTime < timeCheckHour) {
