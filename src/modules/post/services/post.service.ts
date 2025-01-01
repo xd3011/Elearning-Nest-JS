@@ -32,11 +32,30 @@ export class PostService {
   async create(createPostDto: CreatePostDto, user: IUser | User) {
     // Check group exists and user is member
     await this.groupService.findOne(createPostDto.groupId, user);
-    return await this.postRepository.save({
+    const post = await this.postRepository.save({
       ...createPostDto,
       user: { id: user.id, email: user.email },
       group: { id: createPostDto.groupId },
     });
+
+    if (post.type === TypeMessage.MEETING) {
+      this.scheduleMeetingCheck(post, user);
+    }
+    return post;
+  }
+
+  private async scheduleMeetingCheck(post: Post, user: IUser | User) {
+    setTimeout(async () => {
+      const userInMeeting = await this.wsService.getUsersInMetting(
+        post.group.id,
+      );
+      if (!userInMeeting?.userIds.length) {
+        const meeting = await this.findOne(post.id, user);
+        if (meeting.updatedAt === meeting.createdAt) {
+          await this.postRepository.update(post.id, { updatedAt: new Date() });
+        }
+      }
+    }, 10 * 60 * 1000);
   }
 
   async findAll(
@@ -111,7 +130,7 @@ export class PostService {
     };
   }
 
-  async findOne(id: number, user: IUser) {
+  async findOne(id: number, user: IUser | User) {
     const query = this.postRepository
       .createQueryBuilder('post')
       .innerJoinAndSelect('post.user', 'user')
