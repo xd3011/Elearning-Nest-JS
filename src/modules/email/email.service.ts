@@ -1,4 +1,5 @@
 import { Schedule } from '@modules/schedule/entities/schedule.entity';
+import { User } from '@modules/user/entities/user.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 
@@ -33,6 +34,22 @@ export class EmailService {
           senderName: 'Support Team <spteamdh@gmail.com>',
         },
       });
+    });
+  }
+
+  async handleSendEmailForgotPassword(user: User, code: string) {
+    await this.mailerService.sendMail({
+      to: user.email,
+      from: 'Support Team <spteamdh@gmail.com>',
+      subject: 'Reset Password',
+      template: 'forgot-password',
+      context: {
+        // resetLink: `http://localhost:4000/api/v1/confirm-forgot-password`,
+        recipientName: `${user.firstName} ${user.lastName}`,
+        // email: user.email,
+        code: code,
+        senderName: 'Support Team <spteamdh@gmail.com>',
+      },
     });
   }
 }

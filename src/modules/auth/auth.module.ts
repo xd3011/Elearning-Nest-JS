@@ -12,10 +12,13 @@ import { TokenService } from './services/token.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Token } from './entities/token.entity';
 import { RoleModule } from '@modules/role/role.module';
+import { Otp } from './entities/opt.entity';
+import { OtpService } from './services/otp.service';
+import { EmailModule } from '@modules/email/email.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Token]),
+    TypeOrmModule.forFeature([Token, Otp]),
     UserModule,
     PassportModule,
     JwtModule.registerAsync({
@@ -29,9 +32,16 @@ import { RoleModule } from '@modules/role/role.module';
       inject: [ConfigService],
     }),
     RoleModule,
+    EmailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, TokenService, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    TokenService,
+    OtpService,
+    LocalStrategy,
+    JwtStrategy,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

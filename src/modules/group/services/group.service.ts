@@ -9,7 +9,7 @@ import { IUser } from '@modules/user/interface/user.interface';
 import { UserService } from '@modules/user/user.service';
 import { CBadRequestException } from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
-import { generateCodeJoin } from '@shared/generate-code-join';
+import { generateCodeJoin } from '@shared/generate-code';
 import { User } from '@modules/user/entities/user.entity';
 
 @Injectable()
