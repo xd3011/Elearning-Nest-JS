@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   OneToOne,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity()
@@ -12,7 +13,10 @@ export class Otp {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User, (user) => user.id)
+  @OneToOne(() => User, (user) => user.id, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
   user: User;
 
   @Column({ nullable: true })

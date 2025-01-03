@@ -46,9 +46,10 @@ export default registerAs<TAuthConfig>('auth', () => {
     jwtSecretKey: process.env.JWT_SECRET_KEY,
     jwtRefreshKey: process.env.JWT_REFRESH_KEY,
     jwtResetKey: process.env.JWT_RESET_KEY,
-    accessTokenExpireIn: parseInt(process.env.ACCESS_TOKEN_EXPIRE_IN) || 3600,
+    accessTokenExpireIn:
+      parseInt(process.env.ACCESS_TOKEN_EXPIRE_IN) || 3600000,
     refreshTokenExpireIn:
-      parseInt(process.env.REFRESH_TOKEN_EXPIRE_IN) || 2592000,
-    resetExpireIn: parseInt(process.env.RESET_EXPIRE_IN) || 600,
+      parseInt(process.env.REFRESH_TOKEN_EXPIRE_IN) || 2592000000,
+    resetExpireIn: parseInt(process.env.RESET_EXPIRE_IN) || 600000,
   };
 });

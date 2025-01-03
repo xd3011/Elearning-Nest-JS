@@ -21,10 +21,7 @@ export class Token {
   refreshToken?: string;
 
   @Column({ nullable: true })
-  otp?: string;
-
-  @Column({ nullable: true })
-  expiredOtp?: Date;
+  expiredToken?: Date;
 
   @CreateDateColumn()
   createdAt: Date;
