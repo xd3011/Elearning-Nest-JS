@@ -195,6 +195,7 @@ export class AuthService {
       );
     }
     if (otp.expiredOtp < new Date()) {
+      await this.otpService.deleteOtp(otp.id);
       throw new CBadRequestException(
         AuthService.name,
         'OTP expired',
