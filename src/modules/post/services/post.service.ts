@@ -51,8 +51,12 @@ export class PostService {
       );
       if (!userInMeeting?.userIds.length) {
         const meeting = await this.findOne(post.id, user);
-        if (meeting.updatedAt === meeting.createdAt) {
-          await this.postRepository.update(post.id, { updatedAt: new Date() });
+        const createdAt = new Date(meeting.createdAt).getTime();
+        const updatedAt = new Date(meeting.updatedAt).getTime();
+        if (Math.abs(updatedAt - createdAt) < 1000) {
+          await this.postRepository.update(post.id, {
+            updatedAt: new Date(),
+          });
         }
       }
     }, 10 * 60 * 1000);
