@@ -14,6 +14,7 @@ import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { RoleService } from '@modules/role/role.service';
 import { IUser } from './interface/user.interface';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { State } from '@shared/constants/user-state.constant';
 
 @Injectable()
 export class UserService {
@@ -258,5 +259,24 @@ export class UserService {
       password,
       updatedAt: new Date(),
     });
+  }
+
+  async updateState(id: number, state: State) {
+    const user = await this.findUserById(id);
+    if (user.state === state) {
+      return;
+    }
+    return await this.usersRepository.update(id, {
+      state,
+      updatedAt: new Date(),
+    });
+  }
+
+  async getAllUserState() {
+    const users = await this.usersRepository.find({
+      select: ['id', 'state'],
+      order: { state: 'DESC' },
+    });
+    return users;
   }
 }

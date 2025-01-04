@@ -23,6 +23,7 @@ import { PostService } from '@modules/post/services/post.service';
 import { CreateSubPostDto } from '@modules/post/dto/create-sub-post.dto';
 import { SubPostService } from '@modules/post/services/subPost.service';
 import { Post } from '@modules/post/entities/post.entity';
+import { UpdateUserStateDto } from '@modules/user/dto/update-user.dto';
 
 export interface CustomSocket extends Socket {
   user: IUser;
@@ -67,6 +68,23 @@ export class WsGateway {
     }
     const { id }: IUser = payload;
     await this.wsService.removeClientId(client.id, id);
+  }
+
+  @SubscribeMessage('/user-state')
+  async handleUserState(@ConnectedSocket() client: CustomSocket) {
+    this.server.in(client.id).socketsJoin(`/all-user-state`);
+    const states = await this.wsService.handleGetAllUserState();
+    this.server.to(client.id).emit('/user-state', states);
+  }
+
+  @SubscribeMessage('/user-state/change')
+  async handleChangeUserState(
+    @MessageBody() updateUserStateDto: UpdateUserStateDto,
+    @User() user: IUser,
+  ) {
+    await this.wsService.handleChangeUserState(updateUserStateDto, user);
+    const states = await this.wsService.handleGetAllUserState();
+    this.server.to('/all-user-state').emit(`/user-state`, states);
   }
 
   @SubscribeMessage('/chat')
