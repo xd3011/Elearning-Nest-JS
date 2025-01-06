@@ -3,6 +3,9 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { WsGateway } from './ws.gateway';
+import { UserService } from '@modules/user/user.service';
+import { UpdateUserStateDto } from '@modules/user/dto/update-user.dto';
+import { IUser } from '@modules/user/interface/user.interface';
 
 @Injectable()
 export class WSService {
@@ -10,6 +13,7 @@ export class WSService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject(forwardRef(() => WsGateway))
     private readonly wsGateway: WsGateway,
+    private readonly userService: UserService,
   ) {}
   async cacheClientId(clientId: string, userId: number) {
     const cacheKey = `/socketClientId/${userId}`;
@@ -88,5 +92,19 @@ export class WSService {
 
   async handleSendPost(post: Post, groupId: number) {
     this.wsGateway.handleSendPost(post, groupId);
+  }
+
+  async handleGetAllUserState() {
+    return await this.userService.getAllUserState();
+  }
+
+  async handleChangeUserState(
+    updateUserStateDto: UpdateUserStateDto,
+    user: IUser,
+  ) {
+    return await this.userService.updateState(
+      user.id,
+      updateUserStateDto.state,
+    );
   }
 }
