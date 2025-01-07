@@ -1,7 +1,7 @@
 import { RegisterUserDto } from '@modules/user/dto/create-user.dto';
 import { IUser } from '@modules/user/interface/user.interface';
 import { UserService } from '@modules/user/user.service';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { TAuthConfig } from '@src/config/auth.config';
@@ -106,16 +106,15 @@ export class AuthService {
   }
 
   async refreshToken(req: Request, res: Response) {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      throw new CBadRequestException(
+        AuthService.name,
+        'Refresh token not found',
+        ApiResponseCode.REFRESH_TOKEN_NOT_FOUND,
+      );
+    }
     try {
-      const refreshToken = req.cookies.refreshToken;
-      if (!refreshToken) {
-        throw new CBadRequestException(
-          AuthService.name,
-          'Refresh token not found',
-          ApiResponseCode.REFRESH_TOKEN_NOT_FOUND,
-        );
-      }
-
       const authConfig = this.configService.get<TAuthConfig>('auth');
       const verify = await this.jwtService.verify(refreshToken, {
         secret: authConfig.jwtRefreshKey,
@@ -153,9 +152,6 @@ export class AuthService {
         },
       };
     } catch (error) {
-      if (error instanceof CBadRequestException) {
-        throw error;
-      }
       throw new CBadRequestException('Invalid refresh token');
     }
   }
