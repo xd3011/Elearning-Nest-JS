@@ -9,7 +9,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { CBadRequestException } from '@shared/custom-http-exception';
+import {
+  CBadRequestException,
+  CConflictException,
+} from '@shared/custom-http-exception';
 import { ApiResponseCode } from '@shared/constants/api-response-code.constant';
 import { RoleService } from '@modules/role/role.service';
 import { IUser } from './interface/user.interface';
@@ -88,7 +91,7 @@ export class UserService {
       email: createUserDto.email,
     });
     if (isExist) {
-      throw new CBadRequestException(
+      throw new CConflictException(
         UserService.name,
         'User already exists',
         ApiResponseCode.USER_ALREADY_EXISTS,
