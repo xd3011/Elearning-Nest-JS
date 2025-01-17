@@ -7,8 +7,10 @@ import validateConfig from '@shared/validator-config';
 export type TAuthConfig = {
   jwtSecretKey: string;
   jwtRefreshKey: string;
+  jwtResetKey: string;
   accessTokenExpireIn: number;
   refreshTokenExpireIn: number;
+  resetExpireIn: number;
 };
 
 class AuthConfigValidator {
@@ -20,6 +22,10 @@ class AuthConfigValidator {
   @IsNotEmpty()
   JWT_REFRESH_KEY: string;
 
+  @IsString()
+  @IsNotEmpty()
+  JWT_RESET_KEY: string;
+
   @IsInt()
   @IsOptional()
   ACCESS_TOKEN_EXPIRE_IN?: number;
@@ -27,6 +33,10 @@ class AuthConfigValidator {
   @IsInt()
   @IsOptional()
   REFRESH_TOKEN_EXPIRE_IN?: number;
+
+  @IsInt()
+  @IsOptional()
+  RESET_EXPIRE_IN?: number;
 }
 
 export default registerAs<TAuthConfig>('auth', () => {
@@ -35,8 +45,11 @@ export default registerAs<TAuthConfig>('auth', () => {
   return {
     jwtSecretKey: process.env.JWT_SECRET_KEY,
     jwtRefreshKey: process.env.JWT_REFRESH_KEY,
-    accessTokenExpireIn: parseInt(process.env.ACCESS_TOKEN_EXPIRE_IN) || 3600,
+    jwtResetKey: process.env.JWT_RESET_KEY,
+    accessTokenExpireIn:
+      parseInt(process.env.ACCESS_TOKEN_EXPIRE_IN) || 3600000,
     refreshTokenExpireIn:
-      parseInt(process.env.REFRESH_TOKEN_EXPIRE_IN) || 2592000,
+      parseInt(process.env.REFRESH_TOKEN_EXPIRE_IN) || 2592000000,
+    resetExpireIn: parseInt(process.env.RESET_EXPIRE_IN) || 600000,
   };
 });

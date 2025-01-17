@@ -19,6 +19,11 @@ import { TransformResponseInterceptor } from '@src/interceptors/transform-respon
 import { ResponseMessage } from '@src/decorator/message.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { ChangePasswordDto } from '@modules/user/dto/change-password.dto';
+import {
+  ConfirmPasswordDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from '@modules/user/dto/forgot-passsword.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -42,6 +47,37 @@ export class AuthController {
     return this.authService.login(req.user, res);
   }
 
+  @Post('/forgot-password')
+  @IsPublic()
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Forgot password successfully')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('/confirm-forgot-password')
+  @IsPublic()
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Confirm forgot password successfully')
+  async confirmForgotPassword(
+    @Body() confirmPasswordDto: ConfirmPasswordDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.verifyOtp(confirmPasswordDto, res);
+  }
+
+  @Post('/reset-password')
+  @IsPublic()
+  @UseInterceptors(TransformResponseInterceptor)
+  @ResponseMessage('Reset password successfully')
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+    @Req() req,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.resetPassword(resetPasswordDto, req, res);
+  }
+
   @Get('/account')
   @UseInterceptors(TransformResponseInterceptor)
   @ResponseMessage('Get account successfully')
@@ -49,7 +85,7 @@ export class AuthController {
     return await this.authService.getAccount(user);
   }
 
-  @Post('/changePassword')
+  @Post('/change-password')
   @UseInterceptors(TransformResponseInterceptor)
   @ResponseMessage('Change password successfully')
   async changePassword(

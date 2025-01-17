@@ -4,24 +4,26 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  ManyToOne,
-  Index,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity()
-export class Token {
+export class Otp {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @OneToOne(() => User, (user) => user.id, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
   user: User;
 
-  @Index()
-  @Column('text', { nullable: true })
-  refreshToken?: string;
+  @Column({ nullable: true })
+  otp?: string;
 
   @Column({ nullable: true })
-  expiredToken?: Date;
+  expiredOtp?: Date;
 
   @CreateDateColumn()
   createdAt: Date;

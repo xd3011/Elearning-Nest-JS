@@ -1,10 +1,7 @@
-import {
-  CreateUserDto,
-  RegisterUserDto,
-} from '@modules/user/dto/create-user.dto';
+import { RegisterUserDto } from '@modules/user/dto/create-user.dto';
 import { IUser } from '@modules/user/interface/user.interface';
 import { UserService } from '@modules/user/user.service';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { TAuthConfig } from '@src/config/auth.config';
@@ -16,6 +13,14 @@ import { RoleService } from '@modules/role/role.service';
 import { Role } from '@modules/role/entities/role.entity';
 import { CLogger } from '@src/logger/custom-loger';
 import { ChangePasswordDto } from '@modules/user/dto/change-password.dto';
+import {
+  ConfirmPasswordDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from '@modules/user/dto/forgot-passsword.dto';
+import { generateCode } from '@shared/generate-code';
+import { OtpService } from './otp.service';
+import { EmailService } from '@modules/email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +30,8 @@ export class AuthService {
     private configService: ConfigService,
     private tokenService: TokenService,
     private readonly roleService: RoleService,
+    private readonly otpService: OtpService,
+    private readonly emailService: EmailService,
   ) {}
   async register(registerUserDto: RegisterUserDto) {
     let newUser = await this.userService.register(registerUserDto);
@@ -51,6 +58,13 @@ export class AuthService {
       secret: this.configService.get<TAuthConfig>('auth').jwtRefreshKey,
       expiresIn:
         this.configService.get<TAuthConfig>('auth').refreshTokenExpireIn,
+    });
+  };
+
+  createTemporaryToken = (payload: any) => {
+    return this.jwtService.sign(payload, {
+      secret: this.configService.get<TAuthConfig>('auth').jwtResetKey,
+      expiresIn: this.configService.get<TAuthConfig>('auth').resetExpireIn,
     });
   };
 
@@ -92,16 +106,15 @@ export class AuthService {
   }
 
   async refreshToken(req: Request, res: Response) {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      throw new CBadRequestException(
+        AuthService.name,
+        'Refresh token not found',
+        ApiResponseCode.REFRESH_TOKEN_NOT_FOUND,
+      );
+    }
     try {
-      const refreshToken = req.cookies.refreshToken;
-      if (!refreshToken) {
-        throw new CBadRequestException(
-          AuthService.name,
-          'Refresh token not found',
-          ApiResponseCode.REFRESH_TOKEN_NOT_FOUND,
-        );
-      }
-
       const authConfig = this.configService.get<TAuthConfig>('auth');
       const verify = await this.jwtService.verify(refreshToken, {
         secret: authConfig.jwtRefreshKey,
@@ -139,9 +152,6 @@ export class AuthService {
         },
       };
     } catch (error) {
-      if (error instanceof CBadRequestException) {
-        throw error;
-      }
       throw new CBadRequestException('Invalid refresh token');
     }
   }
@@ -159,5 +169,74 @@ export class AuthService {
 
   async changePassword(user: IUser, changePasswordDto: ChangePasswordDto) {
     return await this.userService.changePassword(user, changePasswordDto);
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const user = await this.userService.findOneByUsername(
+      forgotPasswordDto.email,
+    );
+    const generatedOtp = generateCode(6);
+    await this.otpService.createOtp(user, generatedOtp);
+    await this.emailService.handleSendEmailForgotPassword(user, generatedOtp);
+    return;
+  }
+
+  async verifyOtp(confirmPasswordDto: ConfirmPasswordDto, res: Response) {
+    const otp = await this.otpService.findOtpByEmail(confirmPasswordDto.email);
+    if (otp.otp !== confirmPasswordDto.code) {
+      throw new CBadRequestException(
+        AuthService.name,
+        'Invalid OTP',
+        ApiResponseCode.INVALID_OTP,
+      );
+    }
+    if (otp.expiredOtp < new Date()) {
+      await this.otpService.deleteOtp(otp.id);
+      throw new CBadRequestException(
+        AuthService.name,
+        'OTP expired',
+        ApiResponseCode.OTP_EXPIRED,
+      );
+    }
+    await this.otpService.deleteOtp(otp.id);
+
+    const payload = {
+      sub: 'token reset password',
+      iss: 'from server',
+      id: otp.user.id,
+      email: otp.user.email,
+    };
+    const temporaryToken = this.createTemporaryToken(payload);
+
+    res.cookie('temporaryToken', temporaryToken, {
+      httpOnly: true,
+      maxAge: this.configService.get<TAuthConfig>('auth').resetExpireIn,
+    });
+    return;
+  }
+
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+    req: Request,
+    res: Response,
+  ) {
+    const temporaryToken = req.cookies.temporaryToken;
+    if (!temporaryToken) {
+      throw new CBadRequestException(
+        AuthService.name,
+        'Token reset password not found',
+        ApiResponseCode.TOKEN_RESET_PASSWORD_NOT_FOUND,
+      );
+    }
+    const authConfig = this.configService.get<TAuthConfig>('auth');
+    const verify = await this.jwtService.verify(temporaryToken, {
+      secret: authConfig.jwtResetKey,
+    });
+    await this.userService.resetPassword(
+      verify.id,
+      resetPasswordDto.newPassword,
+    );
+    res.clearCookie('temporaryToken');
+    return;
   }
 }
