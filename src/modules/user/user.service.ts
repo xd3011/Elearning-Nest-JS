@@ -264,6 +264,15 @@ export class UserService {
     });
   }
 
+  async resetPassword(id: number, newPassword: string) {
+    await this.findUserById(id);
+    const password = await this.hashPassword(newPassword);
+    return await this.usersRepository.update(id, {
+      password,
+      updatedAt: new Date(),
+    });
+  }
+
   async updateState(id: number, state: State) {
     const user = await this.findUserById(id);
     if (user.state === state) {
