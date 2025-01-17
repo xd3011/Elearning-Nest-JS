@@ -291,13 +291,4 @@ export class UserService {
     });
     return users;
   }
-
-  async resetPassword(id: number, newPassword: string) {
-    await this.findUserById(id);
-    const password = await this.hashPassword(newPassword);
-    return await this.usersRepository.update(id, {
-      password,
-      updatedAt: new Date(),
-    });
-  }
 }
