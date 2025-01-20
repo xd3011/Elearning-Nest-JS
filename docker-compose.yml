@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16.6
+    restart: always
+    ports:
+      - '5432:5432'
+    env_file:
+      - docker.env
+    networks:
+      - backend
+    expose:
+      - 5434
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '4000:4000'
+    env_file:
+      - docker.env
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

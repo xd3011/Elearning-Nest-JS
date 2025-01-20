@@ -83,7 +83,7 @@
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "4.2.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.0.0"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -91,13 +91,6 @@
       "json",
       "ts"
     ],
-    "moduleNameMapper": {
-      "^@src/(.*)$": "<rootDir>/$1",
-      "^@modules/(.*)$": "<rootDir>/modules/$1",
-      "^@config/(.*)$": "<rootDir>/configs/$1",
-      "^@shared/(.*)$": "<rootDir>/shared/$1",
-      "^@repositories/(.*)$": "<rootDir>/repositories/$1"
-    },
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
