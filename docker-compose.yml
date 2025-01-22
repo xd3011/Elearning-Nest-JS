@@ -6,8 +6,6 @@ services:
       - '5432:5432'
     env_file:
       - docker.env
-    networks:
-      - backend
     expose:
       - 5434
   backend:
@@ -19,9 +17,3 @@ services:
       - '4000:4000'
     env_file:
       - docker.env
-    networks:
-      - backend
-
-networks:
-  backend:
-    driver: bridge
